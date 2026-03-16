@@ -16,3 +16,6 @@ dependencies {
 
     testImplementation "org.junit.jupiter:junit-jupiter:$versionJunit"
 }
+test {
+    useJUnitPlatform()
+}

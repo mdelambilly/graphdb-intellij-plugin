@@ -21,6 +21,7 @@ dependencies {
 
     implementation project(":platform")
 
+    testImplementation "org.junit.jupiter:junit-jupiter:$versionJunit"
     testImplementation "org.mockito:mockito-core:$versionMockito"
     testImplementation "org.assertj:assertj-core:$versionAssertj"
 }
@@ -28,16 +29,16 @@ dependencies {
 tasks.register("generateCypherLexer", GenerateLexerTask.class) {
     sourceFile.set(layout.projectDirectory.file("src/main/java/com/albertoventurini/graphdbplugin/language/cypher/lexer/CypherLexer.flex"))
     targetOutputDir.set(layout.projectDirectory.dir("src/main/gen/com/albertoventurini/graphdbplugin/language/cypher/lexer/"))
-    targetClass = "CypherLexer"
-    purgeOldFiles = true
+    targetClass.set("CypherLexer")
+    purgeOldFiles.set(true)
 }
 
 tasks.register("generateCypherParser", GenerateParserTask.class) {
     sourceFile.set(layout.projectDirectory.file("src/main/java/com/albertoventurini/graphdbplugin/language/cypher/lexer/Cypher.bnf"))
     targetRootOutputDir.set(layout.projectDirectory.dir("src/main/gen"))
-    pathToParser = "com/albertoventurini/graphdbplugin/language/cypher/CypherParser.java"
-    pathToPsiRoot = "com/albertoventurini/graphdbplugin/language/cypher/psi"
-    purgeOldFiles = true
+    pathToParser.set("com/albertoventurini/graphdbplugin/language/cypher/CypherParser.java")
+    pathToPsiRoot.set("com/albertoventurini/graphdbplugin/language/cypher/psi")
+    purgeOldFiles.set(true)
 }
 
 compileJava {
@@ -52,4 +53,7 @@ sourceSets {
             srcDirs 'src/main/java', 'src/main/gen'
         }
     }
+}
+test {
+    useJUnitPlatform()
 }

@@ -22,3 +22,7 @@ dependencies {
     implementation project(':database:neo4j')
     implementation "de.sciss:prefuse-core:$versionPrefuse"
 }
+
+test {
+    failOnNoDiscoveredTests = false
+}

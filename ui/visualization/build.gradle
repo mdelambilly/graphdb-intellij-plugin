@@ -19,7 +19,11 @@ dependencies {
     implementation project(":platform")
     implementation project(':database:api')
 
+    testImplementation "org.junit.jupiter:junit-jupiter:$versionJunit"
     testImplementation "org.mockito:mockito-core:$versionMockito"
     testImplementation "org.assertj:assertj-core:$versionAssertj"
     testImplementation "de.sciss:prefuse-demos:$versionPrefuse"
+}
+test {
+    useJUnitPlatform()
 }

@@ -9,8 +9,8 @@ plugins {
     // Java support
     id 'java'
 
-    id 'org.jetbrains.intellij.platform' version '2.13.0' apply false
-    id 'org.jetbrains.intellij.platform.module' version '2.13.0' apply false
+    id 'org.jetbrains.intellij.platform' version '2.13.1' apply false
+    id 'org.jetbrains.intellij.platform.module' version '2.13.1' apply false
 
     // JetBrain's Gradle Changelog Plugin
     // https://github.com/JetBrains/gradle-changelog-plugin
@@ -37,6 +37,13 @@ allprojects {
         def javaVersion = providers.gradleProperty('javaVersion').get()
         sourceCompatibility = JavaVersion.toVersion(javaVersion)
         targetCompatibility = JavaVersion.toVersion(javaVersion)
+    }
+
+    // Gradle 9 requires the JUnit Platform launcher explicitly on the test runtime classpath.
+    // junit:junit is needed at runtime by the IJPGP module plugin's test executor (internal bridge).
+    dependencies {
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher:$versionJunitPlatform"
+        testRuntimeOnly "junit:junit:4.13.2"
     }
 }
 

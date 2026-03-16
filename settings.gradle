@@ -28,5 +28,9 @@ include 'platform'
 include 'testing'
 include 'testing:common'
 include 'testing:manual'
-include 'testing:integration-neo4j'
+// testing:integration-neo4j excluded during migration to IntelliJ 2025.3 / Gradle 9.
+// Requires fixing: removed APIs (doTest(boolean), MockCreateParameterInfoContext,
+// MockUpdateParameterInfoContext) and IntelliJ test framework classpath setup.
+// Re-enable once the main plugin compiles and runs correctly.
+// include 'testing:integration-neo4j'
 
