@@ -28,4 +28,21 @@ dependencies {
     testImplementation "org.neo4j.driver:neo4j-java-driver:$versionNeo4jJavaBoltDriver"
     testImplementation "org.testcontainers:testcontainers:$versionTestcontainers"
     testImplementation "org.testcontainers:neo4j:$versionTestcontainers"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter:$versionJunit"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$versionJunit"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// testFramework() is not available in module plugins (IJPGP limitation).
+// Resolve testFramework.jar directly from the IntelliJ Platform installation path.
+afterEvaluate {
+    def testFrameworkJar = intellijPlatform.platformPath.resolve("lib/testFramework.jar").toFile()
+    if (testFrameworkJar.exists()) {
+        dependencies {
+            testImplementation files(testFrameworkJar)
+        }
+    }
 }

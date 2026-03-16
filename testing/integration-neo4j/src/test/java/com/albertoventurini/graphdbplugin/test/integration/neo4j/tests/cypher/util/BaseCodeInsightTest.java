@@ -9,6 +9,9 @@ package com.albertoventurini.graphdbplugin.test.integration.neo4j.tests.cypher.u
 import com.google.common.io.Resources;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.net.URISyntaxException;
+
 abstract class BaseCodeInsightTest extends BaseGenericTest {
 
     private String namespace;
@@ -21,7 +24,11 @@ abstract class BaseCodeInsightTest extends BaseGenericTest {
 
     @Override
     protected String getTestDataPath() {
-        return Resources.getResource(namespace).getFile() + "/" + dataPath;
+        try {
+            return new File(Resources.getResource(namespace).toURI()).getAbsolutePath() + "/" + dataPath;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @NotNull

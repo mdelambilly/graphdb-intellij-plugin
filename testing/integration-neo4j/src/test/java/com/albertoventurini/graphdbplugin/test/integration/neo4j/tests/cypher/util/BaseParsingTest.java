@@ -10,6 +10,8 @@ import com.albertoventurini.graphdbplugin.language.cypher.CypherParserDefinition
 import com.google.common.io.Resources;
 import com.intellij.testFramework.ParsingTestCase;
 
+import java.io.File;
+import java.net.URISyntaxException;
 
 /**
  * Base for all parsing test cases.
@@ -22,7 +24,11 @@ public abstract class BaseParsingTest  extends ParsingTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return Resources.getResource("parsing").getFile();
+        try {
+            return new File(Resources.getResource("parsing").toURI()).getAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
