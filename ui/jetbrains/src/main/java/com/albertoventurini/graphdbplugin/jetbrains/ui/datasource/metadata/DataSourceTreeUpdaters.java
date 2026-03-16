@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * Maintains a collection of known {@link DataSourceTreeUpdater} objects.
  */
-@Service
+@Service(Service.Level.PROJECT)
 final class DataSourceTreeUpdaters {
 
     private final Map<DataSourceType, DataSourceTreeUpdater> handlers;
