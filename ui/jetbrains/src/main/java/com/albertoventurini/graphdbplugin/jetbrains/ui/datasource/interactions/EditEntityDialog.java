@@ -55,6 +55,8 @@ public class EditEntityDialog extends DialogWrapper {
         boolean isCreateMode = node == null;
         boolean isNodeEdit = isCreateMode || node instanceof GraphNode;
 
+        setupUI();
+
         Disposer.register(project, myDisposable);
         init();
 
@@ -100,6 +102,86 @@ public class EditEntityDialog extends DialogWrapper {
                 validate();
             }
         });
+    }
+
+    private void setupUI() {
+        // Main container — 3 rows: nodeLabel, labelsPanel, propertiesSection
+        container = new JPanel(new GridBagLayout());
+        container.setMinimumSize(new Dimension(400, 300));
+        container.setPreferredSize(new Dimension(600, 400));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+
+        // Row 0: nodeLabel
+        nodeLabel = new JLabel("Node [id]");
+        gbc.gridy = 0;
+        gbc.weighty = 0.0;
+        container.add(nodeLabel, gbc);
+
+        // Row 1: labelsPanel (Labels header + scrollable labelContainer)
+        labelsPanel = buildSectionPanel("Labels", true);
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+        container.add(labelsPanel, gbc);
+
+        // Row 2: propertiesSection (Properties header + scrollable propertyContainer)
+        JPanel propertiesSection = buildSectionPanel("Properties", false);
+        gbc.gridy = 2;
+        container.add(propertiesSection, gbc);
+    }
+
+    /**
+     * Builds a section panel with a header row (title label + add label) and a scrollable content panel.
+     * @param title  section title
+     * @param isLabels  true → assigns labelsPanel fields; false → assigns propertiesSection fields
+     */
+    private JPanel buildSectionPanel(String title, boolean isLabels) {
+        JPanel section = new JPanel(new GridBagLayout());
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(!isLabels); // labelContainer is opaque=false in original form
+        contentPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+
+        JLabel addIconLabel = new JLabel("");
+
+        if (isLabels) {
+            labelContainer = contentPanel;
+            addLabel = addIconLabel;
+        } else {
+            propertyContainer = contentPanel;
+            addProperty = addIconLabel;
+        }
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1.0;
+        c.weighty = 0.0;
+        c.insets = new Insets(0, 0, 0, 0);
+
+        // Header row: title label (col 0) + add icon label (col 1)
+        c.gridy = 0;
+        c.gridx = 0;
+        section.add(new JLabel(title), c);
+        c.gridx = 1;
+        section.add(addIconLabel, c);
+
+        // Scrollable content row
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setPreferredSize(new Dimension(-1, 200));
+        c.gridy = 1;
+        c.gridx = 0;
+        c.gridwidth = 2;
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+        section.add(scrollPane, c);
+
+        return section;
     }
 
     private void setTitle(boolean isCreateNode, boolean isEditNode) {

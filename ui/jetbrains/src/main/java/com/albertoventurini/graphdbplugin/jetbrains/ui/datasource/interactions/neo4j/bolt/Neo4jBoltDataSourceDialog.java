@@ -21,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.intellij.ui.components.JBTabbedPane;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,6 +93,9 @@ public class Neo4jBoltDataSourceDialog extends DataSourceDialog {
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
+        if (scrollPane == null) {
+            setupUI();
+        }
         if (dataSourceToEdit != null) {
             Map<String, String> conf = dataSourceToEdit.getConfiguration();
             String protocol = conf.get(Neo4jBoltConfiguration.PROTOCOL);
@@ -123,6 +129,85 @@ public class Neo4jBoltDataSourceDialog extends DataSourceDialog {
             passwordField.setText(password);
         }
         return scrollPane;
+    }
+
+    private void setupUI() {
+        dataSourceNameField = new JBTextField();
+        protocolComboBox = new JComboBox<>(new String[]{"bolt", "bolt+s", "bolt+ssc", "neo4j", "neo4j+s", "neo4j+ssc"});
+        hostField = new JBTextField("localhost");
+        portField = new JBTextField("7687");
+        databaseField = new JBTextField();
+        authTypeComboBox = new JComboBox<>(new String[]{"User & Password", "No auth"});
+        userField = new JBTextField();
+        passwordField = new JBPasswordField();
+        testConnectionButton = new JButton("Test connection");
+        loadingIcon = new AsyncProcessIcon("validateConnectionIcon");
+        loadingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        loadingPanel.add(loadingIcon);
+
+        Insets labelInsets = new Insets(4, 4, 4, 8);
+        Insets fieldInsets = new Insets(4, 0, 4, 4);
+
+        // --- Name row ---
+        JPanel nameRow = new JPanel(new GridBagLayout());
+        addLabelAndField(nameRow, "Name", dataSourceNameField, 0, labelInsets, fieldInsets);
+
+        // --- General tab panel (8 rows) ---
+        JPanel generalPanel = new JPanel(new GridBagLayout());
+        addLabelAndField(generalPanel, "Protocol",       protocolComboBox,  0, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "Host",           hostField,         1, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "Port",           portField,         2, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "Database",       databaseField,     3, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "Authentication", authTypeComboBox,  4, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "User",           userField,         5, labelInsets, fieldInsets);
+        addLabelAndField(generalPanel, "Password",       passwordField,     6, labelInsets, fieldInsets);
+
+        GridBagConstraints bc = new GridBagConstraints();
+        bc.gridy = 7; bc.gridx = 1;
+        bc.fill = GridBagConstraints.NONE; bc.anchor = GridBagConstraints.WEST;
+        bc.insets = new Insets(4, 0, 4, 4);
+        generalPanel.add(testConnectionButton, bc);
+        bc.gridx = 2;
+        generalPanel.add(loadingPanel, bc);
+
+        // vertical filler
+        GridBagConstraints filler = new GridBagConstraints();
+        filler.gridy = 8; filler.gridx = 0; filler.weighty = 1.0;
+        filler.fill = GridBagConstraints.VERTICAL;
+        generalPanel.add(Box.createVerticalGlue(), filler);
+
+        JBTabbedPane tabs = new JBTabbedPane();
+        tabs.addTab("General", generalPanel);
+
+        // --- Content panel (inside scroll pane) ---
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setMinimumSize(new Dimension(400, 250));
+        content.setPreferredSize(new Dimension(600, 350));
+
+        GridBagConstraints cc = new GridBagConstraints();
+        cc.gridx = 0; cc.weightx = 1.0;
+        cc.gridy = 0; cc.weighty = 0.0; cc.fill = GridBagConstraints.HORIZONTAL;
+        content.add(nameRow, cc);
+        cc.gridy = 1; cc.weighty = 1.0; cc.fill = GridBagConstraints.BOTH;
+        content.add(tabs, cc);
+
+        scrollPane = new JScrollPane(content);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    }
+
+    private void addLabelAndField(JPanel panel, String label, JComponent field,
+                                  int row, Insets labelInsets, Insets fieldInsets) {
+        GridBagConstraints lc = new GridBagConstraints();
+        lc.gridy = row; lc.gridx = 0;
+        lc.fill = GridBagConstraints.NONE; lc.anchor = GridBagConstraints.WEST;
+        lc.insets = labelInsets;
+        panel.add(new JLabel(label), lc);
+
+        GridBagConstraints fc = new GridBagConstraints();
+        fc.gridy = row; fc.gridx = 1; fc.gridwidth = 2;
+        fc.fill = GridBagConstraints.HORIZONTAL; fc.weightx = 1.0;
+        fc.insets = fieldInsets;
+        panel.add(field, fc);
     }
 
     private void handleAuthTypeChanged(final ActionEvent e) {
@@ -184,10 +269,6 @@ public class Neo4jBoltDataSourceDialog extends DataSourceDialog {
                 userField.getText(),
                 String.valueOf(passwordField.getPassword())  // TODO: use password API?
         );
-    }
-
-    private void createUIComponents() {
-        loadingIcon = new AsyncProcessIcon("validateConnectionIcon");
     }
 
     private static final class Data {

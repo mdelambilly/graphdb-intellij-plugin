@@ -107,6 +107,80 @@ public class GraphConsoleView implements Disposable {
         logPanel = new LogPanel();
         parametersPanel = new ParametersPanel();
         lookAndFeelService = ApplicationManager.getApplication().getService(LookAndFeelService.class);
+
+        setupUI();
+    }
+
+    private void setupUI() {
+        // --- Log tab ---
+        logTab = new JPanel(new BorderLayout());
+
+        // --- Graph tab ---
+        graphCanvas = new JPanel(new GridLayout(0, 1));
+
+        entityDetailsTree = new Tree();
+        entityDetailsScrollPane = new JBScrollPane(entityDetailsTree);
+
+        entityDetailsScrollContent = new JPanel(new GridLayout(1, 1));
+        entityDetailsScrollContent.add(entityDetailsScrollPane);
+
+        graphSplitter = new JBSplitter(false, 0.7f);
+        graphSplitter.setFirstComponent(graphCanvas);
+        graphSplitter.setSecondComponent(entityDetailsScrollContent);
+
+        graphTab = new JPanel(new BorderLayout());
+        graphTab.add(graphSplitter, BorderLayout.CENTER);
+
+        // --- Table tab ---
+        tableExecuteResults = new JBTable();
+        tableScrollPane = new JBScrollPane(tableExecuteResults);
+
+        // --- Parameters tab ---
+        globalParametersTab = new JPanel(new BorderLayout());
+        fileSpecificParametersTab = new JPanel(new BorderLayout());
+
+        paramSplitter = new JBSplitter(false, 0.5f);
+        paramSplitter.setShowDividerControls(true);
+        paramSplitter.setFirstComponent(globalParametersTab);
+        paramSplitter.setSecondComponent(fileSpecificParametersTab);
+
+        parametersTab = new JPanel(new BorderLayout());
+        parametersTab.add(paramSplitter, BorderLayout.CENTER);
+
+        // defaultTabContainer is hidden immediately in initToolWindow; kept to avoid NPE
+        defaultTabContainer = new JBTabbedPane();
+        defaultTabContainer.add(Tabs.LOG, logTab);
+        defaultTabContainer.add(Tabs.GRAPH, graphTab);
+        defaultTabContainer.add(Tabs.TABLE, tableScrollPane);
+        defaultTabContainer.add(Tabs.PARAMETERS, parametersTab);
+
+        // --- consoleTabs (JBTabsImpl) via JBTabsPaneImpl ---
+        consoleTabsPane = new JBTabsPaneImpl(null, SwingConstants.TOP, this);
+        consoleTabs = (JBTabsImpl) consoleTabsPane.getTabs();
+
+        consoleTabs.addTabMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (UIUtil.isCloseClick(e, MouseEvent.MOUSE_RELEASED)) {
+                    final TabInfo info = consoleTabs.findInfo(e);
+                    if (info != null) {
+                        String tabTitle = info.getText();
+                        if (tabTitle.startsWith(PROFILE_PLAN_TITLE) || tabTitle.startsWith(EXPLAIN_PLAN_TITLE)) {
+                            IdeEventQueue.getInstance().blockNextEvents(e);
+                            consoleTabs.removeTab(info);
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Toolbar panel ---
+        consoleToolbarPanel = new JPanel(new BorderLayout());
+
+        // --- Root panel ---
+        consoleToolWindowContent = new JPanel(new BorderLayout());
+        consoleToolWindowContent.add(consoleToolbarPanel, BorderLayout.WEST);
+        consoleToolWindowContent.add(consoleTabs, BorderLayout.CENTER);
     }
 
     public void initToolWindow(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
@@ -174,28 +248,6 @@ public class GraphConsoleView implements Disposable {
         }
 
         throw new IllegalArgumentException("No tab found with name: " + name);
-    }
-
-    private void createUIComponents() {
-        graphCanvas = new JPanel(new GridLayout(0, 1));
-        consoleTabsPane = new JBTabsPaneImpl(null, SwingConstants.TOP, this);
-        consoleTabs = (JBTabsImpl) consoleTabsPane.getTabs();
-
-        consoleTabs.addTabMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (UIUtil.isCloseClick(e, MouseEvent.MOUSE_RELEASED)) {
-                    final TabInfo info = consoleTabs.findInfo(e);
-                    if (info != null) {
-                        String tabTitle = info.getText();
-                        if (tabTitle.startsWith(PROFILE_PLAN_TITLE) || tabTitle.startsWith(EXPLAIN_PLAN_TITLE)) {
-                            IdeEventQueue.getInstance().blockNextEvents(e);
-                            consoleTabs.removeTab(info);
-                        }
-                    }
-                }
-            }
-        });
     }
 
     private void updateLookAndFeel() {

@@ -60,6 +60,14 @@ public class DataSourcesView implements Disposable {
 
     public DataSourcesView() {
         initialized = false;
+        setupUI();
+    }
+
+    private void setupUI() {
+        dataSourceTree = new Tree();
+        treePanel = new JPanel(new GridLayout(0, 1));
+        toolWindowContent = new JPanel(new BorderLayout());
+        toolWindowContent.add(treePanel, BorderLayout.CENTER);
     }
 
     public void initToolWindow(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -107,10 +115,6 @@ public class DataSourcesView implements Disposable {
 
     public ToolbarDecorator getDecorator() {
         return decorator;
-    }
-
-    private void createUIComponents() {
-        treePanel = new JPanel(new GridLayout(0, 1));
     }
 
     private void configureDataSourceTree() {
