@@ -17,9 +17,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.impl.EditorTabPresentationUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -37,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public class ParametersPanel implements ParametersProvider {
+public class ParametersPanel implements ParametersProvider, Disposable {
 
     private static final FileDocumentManager FILE_DOCUMENT_MANAGER = FileDocumentManager.getInstance();
     public static final Icon ICON_HELP = AllIcons.Actions.Help;
@@ -54,6 +56,7 @@ public class ParametersPanel implements ParametersProvider {
         this.messageBus = project.getMessageBus();
         this.service = project.getService(ParametersService.class);
         this.project = project;
+        Disposer.register(project, this);
         setupEditor(project);
         FileEditor selectedEditor = FileEditorManager.getInstance(project).getSelectedEditor();
         if (selectedEditor != null && selectedEditor.getFile() != null &&
@@ -190,6 +193,16 @@ public class ParametersPanel implements ParametersProvider {
             final Runnable setTextRunner = () -> document.setText("{}");
             ApplicationManager.getApplication()
                     .invokeLater(() -> ApplicationManager.getApplication().runWriteAction(setTextRunner));
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (globalParamEditor != null && !globalParamEditor.isDisposed()) {
+            EditorFactory.getInstance().releaseEditor(globalParamEditor);
+        }
+        if (fileSpecificParamEditor != null && !fileSpecificParamEditor.isDisposed()) {
+            EditorFactory.getInstance().releaseEditor(fileSpecificParamEditor);
         }
     }
 

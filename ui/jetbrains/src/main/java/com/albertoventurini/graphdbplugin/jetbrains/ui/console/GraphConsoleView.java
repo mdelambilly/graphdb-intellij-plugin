@@ -233,6 +233,7 @@ public class GraphConsoleView implements Disposable {
                     ActionManager.getInstance().getAction(GraphConstants.Actions.CONSOLE_ACTIONS);
             ActionToolbar consoleToolbar = ActionManager.getInstance()
                     .createActionToolbar(GraphConstants.ToolWindow.CONSOLE_TOOL_WINDOW, consoleActionGroup, false);
+            consoleToolbar.setTargetComponent(consoleToolbarPanel);
             consoleToolbarPanel.add(consoleToolbar.getComponent(), BorderLayout.CENTER);
             consoleToolbarPanel.setBorder(new CustomLineBorder(0, 0, 0, 1));
             consoleToolbarPanel.validate();

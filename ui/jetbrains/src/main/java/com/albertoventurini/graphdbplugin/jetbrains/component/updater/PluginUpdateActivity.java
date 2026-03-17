@@ -8,13 +8,14 @@
 package com.albertoventurini.graphdbplugin.jetbrains.component.updater;
 
 import com.intellij.notification.*;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.albertoventurini.graphdbplugin.jetbrains.component.settings.SettingsComponent;
 import com.albertoventurini.graphdbplugin.jetbrains.util.PluginUtil;
 import com.albertoventurini.graphdbplugin.platform.GraphBundle;
 import com.albertoventurini.graphdbplugin.platform.GraphConstants;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,12 +23,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Displays a notification when the plugin was updated to a new version.
  */
-public class PluginUpdateActivity implements StartupActivity, DumbAware {
+public class PluginUpdateActivity implements ProjectActivity {
 
     private final AtomicBoolean isUpdateNotificationShown = new AtomicBoolean(false);
 
     @Override
-    public void runActivity(@NotNull final Project project) {
+    public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
         final String currentVersion = PluginUtil.getVersion();
         final String knownVersion = SettingsComponent.getInstance().getKnownPluginVersion();
 
@@ -38,6 +39,7 @@ public class PluginUpdateActivity implements StartupActivity, DumbAware {
                 showNotification(project, currentVersion);
             }
         }
+        return Unit.INSTANCE;
     }
 
     private void showNotification(@NotNull final Project project, String currentVersion) {
