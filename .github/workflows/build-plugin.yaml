@@ -24,10 +24,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Execute Gradle build
-        run: ./gradlew build
+        # Exclude integration tests: they require a running Docker/Neo4j container (Testcontainers)
+        run: ./gradlew build -x :testing:integration-neo4j:test
 
       - name: Run tests
-        run: ./gradlew test
+        # Exclude integration tests: they require a running Docker/Neo4j container (Testcontainers)
+        run: ./gradlew test -x :testing:integration-neo4j:test
 
       - name: Run Plugin Verifier
         run: ./gradlew :graph-database-plugin:verifyPlugin
