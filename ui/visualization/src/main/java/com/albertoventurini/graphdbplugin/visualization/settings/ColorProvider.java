@@ -41,16 +41,6 @@ public class ColorProvider {
     private static final int ORANGE = ColorLib.rgb(229, 60, 20);
     private static final int ORANGE_DARK = ColorLib.rgb(180, 40, 8);
     private static final int GREEN = ColorLib.rgb(132, 173, 74);
-    private static final int GRAY = ColorLib.rgb(178, 178, 178);
-    private static final int GRAY_DARK = ColorLib.rgb(90, 90, 90);
-
-    private static final int EDGE = GRAY;
-    private static final int EDGE_HOVER = GRAY_DARK;
-    private static final int EDGE_HIGHLIGHT = GRAY_DARK;
-
-    private static final int NODE_STROKE = GRAY;
-    private static final int NODE_STROKE_HOVER = GRAY_DARK;
-    private static final int NODE_STROKE_HIGHLIGHT = GRAY_DARK;
 
     private static final int[] PALETTE = {ROT_1, ROT_2, ROT_3, ROT_4, ROT_5, ROT_6, ROT_7, ROT_8};
 
@@ -92,27 +82,33 @@ public class ColorProvider {
 
     @NotNull
     private static ColorAction getEdgeFill(LookAndFeelService lookAndFeelService) {
-        ColorAction arrow = new ColorAction(EDGES, FILLCOLOR, EDGE);
-        arrow.add(HIGHLIGHT, EDGE_HIGHLIGHT);
-        arrow.add(HOVER, EDGE_HOVER);
+        int edge = ColorLib.color(lookAndFeelService.getEdgeFillColor());
+        int edgeHover = ColorLib.color(lookAndFeelService.getNodeStrokeHoverColor());
+        ColorAction arrow = new ColorAction(EDGES, FILLCOLOR, edge);
+        arrow.add(HIGHLIGHT, edgeHover);
+        arrow.add(HOVER, edgeHover);
 
         return arrow;
     }
 
     @NotNull
     private static ColorAction getEdgeStroke(LookAndFeelService lookAndFeelService) {
-        ColorAction nEdges = new ColorAction(EDGES, STROKECOLOR, NODE_STROKE);
-        nEdges.add(HIGHLIGHT, NODE_STROKE_HIGHLIGHT);
-        nEdges.add(HOVER, NODE_STROKE_HOVER);
+        int stroke = ColorLib.color(lookAndFeelService.getEdgeStrokeColor());
+        int strokeHover = ColorLib.color(lookAndFeelService.getNodeStrokeHoverColor());
+        ColorAction nEdges = new ColorAction(EDGES, STROKECOLOR, stroke);
+        nEdges.add(HIGHLIGHT, strokeHover);
+        nEdges.add(HOVER, strokeHover);
 
         return nEdges;
     }
 
     @NotNull
     private static ColorAction getNodeStroke(LookAndFeelService lookAndFeelService) {
-        ColorAction nStroke = new ColorAction(NODES, STROKECOLOR, NODE_STROKE);
-        nStroke.add(HIGHLIGHT, NODE_STROKE_HIGHLIGHT);
-        nStroke.add(HOVER, NODE_STROKE_HOVER);
+        int stroke = ColorLib.color(lookAndFeelService.getNodeStrokeColor());
+        int strokeHover = ColorLib.color(lookAndFeelService.getNodeStrokeHoverColor());
+        ColorAction nStroke = new ColorAction(NODES, STROKECOLOR, stroke);
+        nStroke.add(HIGHLIGHT, strokeHover);
+        nStroke.add(HOVER, strokeHover);
         return nStroke;
     }
 }

@@ -12,7 +12,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class IdeaLookAndFeelService implements LookAndFeelService {
@@ -29,37 +28,37 @@ public class IdeaLookAndFeelService implements LookAndFeelService {
 
     @Override
     public Color getEdgeStrokeColor() {
-        return UIUtil.getBoundsColor().darker();
+        return JBColor.border();
     }
 
     @Override
     public Color getEdgeFillColor() {
-        return UIUtil.getBoundsColor().darker();
+        return JBColor.border();
     }
 
     @Override
     public Color getNodeStrokeColor() {
-        return UIUtil.getBoundsColor().darker();
+        return JBColor.border();
     }
 
     @Override
     public Color getNodeStrokeHoverColor() {
-        return UIUtil.getBoundsColor().darker();
+        return UIUtil.getLabelForeground();
     }
 
     @Override
     public Color getNodeFillColor() {
-        return UIManager.getColor("InternalFrame.inactiveTitleBackground");
+        return UIUtil.getPanelBackground();
     }
 
     @Override
     public Color getNodeFillHoverColor() {
-        return UIManager.getColor("InternalFrame.activeTitleBackground");
+        return UIUtil.getListSelectionBackground(true);
     }
 
     @Override
     public Color getTextColor() {
-        return UIManager.getColor("text");
+        return UIUtil.getLabelForeground();
     }
 
     @Override

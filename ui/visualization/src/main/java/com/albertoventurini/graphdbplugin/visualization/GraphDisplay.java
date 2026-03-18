@@ -20,7 +20,6 @@ import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelServ
 import com.albertoventurini.graphdbplugin.visualization.settings.LayoutProvider;
 import com.albertoventurini.graphdbplugin.visualization.settings.RendererProvider;
 import com.albertoventurini.graphdbplugin.visualization.settings.SchemaProvider;
-import com.intellij.util.ui.UIUtil;
 import com.albertoventurini.graphdbplugin.database.api.data.GraphNode;
 import com.albertoventurini.graphdbplugin.database.api.data.GraphRelationship;
 import com.albertoventurini.graphdbplugin.visualization.util.DisplayUtil;
@@ -64,11 +63,7 @@ public class GraphDisplay extends Display {
         super(new Visualization());
         this.lookAndFeel = lookAndFeel;
 
-        if (UIUtil.isUnderDarcula()) {
-            setBackground(lookAndFeel.getBackgroundColor().darker());
-        } else {
-            setBackground(lookAndFeel.getBackgroundColor());
-        }
+        setBackground(lookAndFeel.getBackgroundColor());
 
         graph = new Graph(DIRECTED);
         graph.addColumn(GraphColumns.ID, String.class);

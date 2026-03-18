@@ -21,13 +21,22 @@ import static prefuse.Constants.SHAPE_ELLIPSE;
 public class SchemaProvider {
 
     private static final int FONT_SIZE = 10;
-    private static final int FONT_COLOR = ColorLib.rgb(15, 15, 45);
     private static final String UI_DEFAULT_FONT_KEY = "Label.font";
+
+    private static int getFontColor() {
+        Color c = UIManager.getColor("Label.foreground");
+        return c != null ? ColorLib.color(c) : ColorLib.rgb(15, 15, 45);
+    }
+
+    private static int getEdgeLabelBackground() {
+        Color c = UIManager.getColor("ToolTip.background");
+        return c != null ? ColorLib.color(c) : ColorLib.rgb(240, 230, 80);
+    }
 
     public static Schema provideFontSchema() {
         final Schema fontSchema = PrefuseLib.getVisualItemSchema();
         fontSchema.setDefault(VisualItem.INTERACTIVE, false);
-        fontSchema.setDefault(VisualItem.TEXTCOLOR, FONT_COLOR);
+        fontSchema.setDefault(VisualItem.TEXTCOLOR, getFontColor());
         Font font = FontLib.getFont(UIManager.getFont(UI_DEFAULT_FONT_KEY).getFontName(), FONT_SIZE);
         fontSchema.setDefault(VisualItem.FONT, font);
 
@@ -36,7 +45,7 @@ public class SchemaProvider {
 
     public static Schema provideFontSchemaWithBackground() {
         Schema schema = provideFontSchema();
-        schema.setDefault(VisualItem.FILLCOLOR, ColorLib.rgb(240, 230, 80));
+        schema.setDefault(VisualItem.FILLCOLOR, getEdgeLabelBackground());
 
         return schema;
     }
