@@ -1,19 +1,16 @@
 <idea-plugin>
-    <id>com.albertoventurini.jetbrains.graphdbplugin</id>
+    <id>com.github.mdelambilly.jetbrains.graphdbplugin</id>
     <name>Graph Database</name>
     <!-- Version is automatically replaced by the patchPluginXml task -->
     <version>9.9.9</version>
-    <vendor email="aventurini@gmail.com" url="https://github.com/albertoventurini/graphdb-intellij-plugin">Alberto Venturini</vendor>
+    <vendor url="https://github.com/mdelambilly/graphdb-intellij-plugin">Michel de Lambilly</vendor>
 
     <description><![CDATA[
-        <p>
-            See this plugin <a href="https://github.com/albertoventurini/graphdb-intellij-plugin">on Github</a>.
-        </p>
         <p>
             This plugin provides useful features for working with graph databases.
             It adds syntax highlighting and autocompletion for the
             <a href="https://opencypher.org/">Cypher</a> query language, and
-            it supports connecting to and querying remote graph databases.
+            it supports connecting to and querying local and remote graph databases.
         </p>
         <p>
             <b>Features:</b>
@@ -27,7 +24,9 @@
         <p>
             <b>Supported databases:</b>
             <ul>
-                <li>Neo4j 3.4+ (Bolt), including AuraDB</li>
+                <li>Neo4j 5.x LTS, including AuraDB and Neo4j Sandbox</li>
+                <li>Neo4j 2026.x, including AuraDB and Neo4j Sandbox</li>
+                <li><a href="https://dozerdb.org/">DozerDB</a></li>
             </ul>
         </p>
 
@@ -56,21 +55,22 @@
         </ul>
         </p>
         <p>
-            This plugin is based on the 'Graph Database Support plugin'
-            developed by Neueda Technologies, Ltd. The original plugin has not been updated
-            in a long time.
+            This plugin is based on the
+            <a href="https://github.com/neueda/jetbrains-plugin-graph-database-support">Graph Database Support</a>
+            plugin originally developed by Neueda Technologies, Ltd., later maintained by
+            <a href="https://github.com/albertoventurini/graphdb-intellij-plugin">Alberto Venturini</a>.
+            This fork continues the work with support for IntelliJ 2025.3, Neo4j 5.26 LTS and Neo4j 2026.x.
         </p>
         <p>
-            This plugin has been updated to run with modern versions of IntelliJ and related IDEs.
-            Just like the original plugin, it supports Neo4j and Cypher data sources; however, support for
-            Gremlin data sources (such as Cosmos DB) has been dropped.
+            If this plugin is useful to you, consider
+            <a href="https://github.com/sponsors/mdelambilly">sponsoring its development</a>.
         </p>
         ]]></description>
 
     <!-- Change notes are automatically replaced by the patchPluginXml task -->
     <change-notes><![CDATA[
         See
-        <a href="https://github.com/albertoventurini/graphdb-intellij-plugin/releases">https://github.com/albertoventurini/graphdb-intellij-plugin/releases</a>
+        <a href="https://github.com/mdelambilly/graphdb-intellij-plugin/releases">https://github.com/mdelambilly/graphdb-intellij-plugin/releases</a>
         ]]></change-notes>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
@@ -80,7 +80,8 @@
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.lang</depends>
-    <depends optional="true">com.intellij.modules.java</depends>
+    <depends>com.intellij.modules.json</depends>
+    <depends>com.intellij.modules.java</depends>
     <depends optional="true" config-file="intellilang-cypher-support.xml">org.intellij.intelliLang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -88,102 +89,103 @@
         <toolWindow id="Graph Database Console"
                     anchor="bottom"
                     secondary="false"
-                    factoryClass="com.albertoventurini.graphdbplugin.jetbrains.ui.console.ConsoleToolWindow"
+                    factoryClass="com.github.mdelambilly.graphdbplugin.jetbrains.ui.console.ConsoleToolWindow"
                     icon="GraphIcons.Window.GRAPH"/>
         <toolWindow id="Graph Database"
                     anchor="right"
                     secondary="false"
-                    factoryClass="com.albertoventurini.graphdbplugin.jetbrains.ui.datasource.DataSourcesToolWindow"
+                    factoryClass="com.github.mdelambilly.graphdbplugin.jetbrains.ui.datasource.DataSourcesToolWindow"
                     icon="GraphIcons.Window.GRAPH"/>
-        <actionPromoter implementation="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryActionPromoter"/>
+        <actionPromoter implementation="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExecuteQueryActionPromoter"/>
 
         <!-- Settings -->
         <applicationService
-                serviceInterface="com.albertoventurini.graphdbplugin.jetbrains.component.settings.SettingsComponent"
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.component.settings.SettingsComponentImpl" />
+                serviceInterface="com.github.mdelambilly.graphdbplugin.jetbrains.component.settings.SettingsComponent"
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.component.settings.SettingsComponentImpl" />
 
         <!-- Graph Database support - query statement highlighting -->
         <applicationService
-                serviceInterface="com.albertoventurini.graphdbplugin.jetbrains.component.highlighter.QueryHighlighterComponent"
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.component.highlighter.QueryHighlighterComponentImpl" />
+                serviceInterface="com.github.mdelambilly.graphdbplugin.jetbrains.component.highlighter.QueryHighlighterComponent"
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.component.highlighter.QueryHighlighterComponentImpl" />
 
-        <applicationService serviceInterface="com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService"
-                            serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.services.IdeaLookAndFeelService"/>
-        <applicationService serviceInterface="com.albertoventurini.graphdbplugin.jetbrains.database.DatabaseManagerService"
-                            serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.database.DatabaseManagerServiceImpl"/>
+        <applicationService serviceInterface="com.github.mdelambilly.graphdbplugin.visualization.services.LookAndFeelService"
+                            serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.services.IdeaLookAndFeelService"/>
+        <applicationService serviceInterface="com.github.mdelambilly.graphdbplugin.jetbrains.database.DatabaseManagerService"
+                            serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.database.DatabaseManagerServiceImpl"/>
         <applicationService
-                serviceInterface="com.albertoventurini.graphdbplugin.jetbrains.services.ExecutorService"
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.services.ExecutorServiceImpl"
-                testServiceImplementation="com.albertoventurini.graphdbplugin.test.mocks.service.DummyExecutorService" />
+                serviceInterface="com.github.mdelambilly.graphdbplugin.jetbrains.services.ExecutorService"
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.services.ExecutorServiceImpl"
+                testServiceImplementation="com.github.mdelambilly.graphdbplugin.test.mocks.service.DummyExecutorService" />
 
         <!-- Graph Database support - data sources -->
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.component.datasource.DataSourcesComponent" />
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.component.datasource.DataSourcesComponent" />
 
         <!-- Graph Database support - data sources metadata -->
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.component.datasource.metadata.DataSourcesComponentMetadata" />
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.component.datasource.metadata.DataSourcesComponentMetadata" />
 
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.ui.console.GraphConsoleView"/>
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.ui.console.GraphConsoleView"/>
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.ui.datasource.DataSourcesView"/>
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.ui.datasource.DataSourcesView"/>
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.ui.console.params.ParametersService"/>
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.ui.console.params.ParametersService"/>
         <projectService
-                serviceImplementation="com.albertoventurini.graphdbplugin.jetbrains.database.VersionService"/>
+                serviceImplementation="com.github.mdelambilly.graphdbplugin.jetbrains.database.VersionService"/>
 
-        <scratch.rootType implementation="com.albertoventurini.graphdbplugin.jetbrains.ui.datasource.interactions.GraphDbEditorsConsoleRootType"/>
-        <scratch.rootType implementation="com.albertoventurini.graphdbplugin.jetbrains.ui.console.params.ParameterRootType"/>
+        <scratch.rootType implementation="com.github.mdelambilly.graphdbplugin.jetbrains.ui.datasource.interactions.GraphDbEditorsConsoleRootType"/>
+        <scratch.rootType implementation="com.github.mdelambilly.graphdbplugin.jetbrains.ui.console.params.ParameterRootType"/>
         <applicationConfigurable groupId="tools"
-                                 instance="com.albertoventurini.graphdbplugin.jetbrains.configuration.GraphDatabaseConfiguration"/>
+                                 displayName="Graph Database"
+                                 instance="com.github.mdelambilly.graphdbplugin.jetbrains.configuration.GraphDatabaseConfiguration"/>
         <!-- Update notification -->
-        <postStartupActivity implementation="com.albertoventurini.graphdbplugin.jetbrains.component.updater.PluginUpdateActivity" />
+        <postStartupActivity implementation="com.github.mdelambilly.graphdbplugin.jetbrains.component.updater.PluginUpdateActivity" />
         <!-- Cypher -->
         <fileType
                 name="Cypher"
-                implementationClass="com.albertoventurini.graphdbplugin.language.cypher.file.CypherFileType"
+                implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.file.CypherFileType"
                 fieldName="INSTANCE"
                 language="Cypher"
                 extensions="cyp;cql;cypher" />
 
         <lang.parserDefinition
-                language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.CypherParserDefinition"/>
+                language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.CypherParserDefinition"/>
         <lang.syntaxHighlighterFactory
-                language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.highlight.CypherSyntaxHighlighterFactory"/>
-        <annotator language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.highlight.CypherSyntaxHighlighterAnnotator"/>
-        <lang.commenter language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.commenter.CypherCommenter"/>
+                language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.highlight.CypherSyntaxHighlighterFactory"/>
+        <annotator language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.highlight.CypherSyntaxHighlighterAnnotator"/>
+        <lang.commenter language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.commenter.CypherCommenter"/>
 
-        <colorSettingsPage implementation="com.albertoventurini.graphdbplugin.language.cypher.settings.CypherColorSettingsPage"/>
+        <colorSettingsPage implementation="com.github.mdelambilly.graphdbplugin.language.cypher.settings.CypherColorSettingsPage"/>
 
-        <completion.contributor language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.completion.CypherCompletionContributor"/>
-        <psi.referenceContributor implementation="com.albertoventurini.graphdbplugin.language.cypher.references.CypherReferenceContributor"/>
-        <lang.refactoringSupport language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.references.CypherRefactoringSupportProvider"/>
-        <lang.braceMatcher language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.lang.CypherBraceMatcher"/>
-        <renameInputValidator implementation="com.albertoventurini.graphdbplugin.language.cypher.references.CypherRenameInputValidator"/>
-        <lang.namesValidator language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.lang.CypherNameValidator"/>
-        <spellchecker.support language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.lang.CypherSpellcheckingStrategy"/>
-        <projectService serviceInterface="com.albertoventurini.graphdbplugin.language.cypher.completion.metadata.CypherMetadataProviderService"
-                        serviceImplementation="com.albertoventurini.graphdbplugin.language.cypher.completion.metadata.CypherMetadataProviderServiceImpl"/>
-        <lang.documentationProvider language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.documentation.CypherDocumentationProvider"/>
+        <completion.contributor language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.completion.CypherCompletionContributor"/>
+        <psi.referenceContributor implementation="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherReferenceContributor"/>
+        <lang.refactoringSupport language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherRefactoringSupportProvider"/>
+        <lang.braceMatcher language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.lang.CypherBraceMatcher"/>
+        <renameInputValidator implementation="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherRenameInputValidator"/>
+        <lang.namesValidator language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.lang.CypherNameValidator"/>
+        <spellchecker.support language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.lang.CypherSpellcheckingStrategy"/>
+        <projectService serviceInterface="com.github.mdelambilly.graphdbplugin.language.cypher.completion.metadata.CypherMetadataProviderService"
+                        serviceImplementation="com.github.mdelambilly.graphdbplugin.language.cypher.completion.metadata.CypherMetadataProviderServiceImpl"/>
+        <lang.documentationProvider language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.documentation.CypherDocumentationProvider"/>
 
         <localInspection language="Cypher" displayName="Cypher EXPLAIN warning inspection" groupPath="Cypher"
                          groupName="General" enabledByDefault="true" level="WARNING"
-                         implementationClass="com.albertoventurini.graphdbplugin.jetbrains.inspection.CypherExplainWarningInspection"/>
+                         implementationClass="com.github.mdelambilly.graphdbplugin.jetbrains.inspection.CypherExplainWarningInspection"/>
         <localInspection language="Cypher" displayName="Function call inspection" groupPath="Cypher"
                          groupName="General" enabledByDefault="true" level="ERROR"
-                         implementationClass="com.albertoventurini.graphdbplugin.language.cypher.inspections.CypherFunctionCallInspection"/>
+                         implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.inspections.CypherFunctionCallInspection"/>
 
-        <codeInsight.parameterInfo language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.editor.CypherParameterInfoHandler"/>
+        <codeInsight.parameterInfo language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.editor.CypherParameterInfoHandler"/>
 
-        <typedHandler implementation="com.albertoventurini.graphdbplugin.language.cypher.editor.CypherTypedHandlerDelegate" />
+        <typedHandler implementation="com.github.mdelambilly.graphdbplugin.language.cypher.editor.CypherTypedHandlerDelegate" />
 
-        <codeStyleSettingsProvider implementation="com.albertoventurini.graphdbplugin.jetbrains.formatter.CypherCodeStyleSettingsProvider"/>
-        <langCodeStyleSettingsProvider implementation="com.albertoventurini.graphdbplugin.jetbrains.formatter.CypherLanguageCodeStyleSettingsProvider"/>
+        <codeStyleSettingsProvider implementation="com.github.mdelambilly.graphdbplugin.jetbrains.formatter.CypherCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider implementation="com.github.mdelambilly.graphdbplugin.jetbrains.formatter.CypherLanguageCodeStyleSettingsProvider"/>
 
-        <lang.formatter language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.language.cypher.formatter.CypherFormattingModelBuilder"/>
-        <preFormatProcessor implementation="com.albertoventurini.graphdbplugin.language.cypher.formatter.CypherPreFormatter" />
-        <codeInsight.lineMarkerProvider language="Cypher" implementationClass="com.albertoventurini.graphdbplugin.jetbrains.component.linemarker.CypherLineMarkerProvider"/>
+        <lang.formatter language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.language.cypher.formatter.CypherFormattingModelBuilder"/>
+        <preFormatProcessor implementation="com.github.mdelambilly.graphdbplugin.language.cypher.formatter.CypherPreFormatter" />
+        <codeInsight.lineMarkerProvider language="Cypher" implementationClass="com.github.mdelambilly.graphdbplugin.jetbrains.component.linemarker.CypherLineMarkerProvider"/>
 
         <notificationGroup id="graphdbplugin.notifications.update"
                            displayType="STICKY_BALLOON" />
@@ -196,7 +198,7 @@
                icon="GraphIcons.Window.GRAPH" popup="true">
 
             <action id="GraphDatabaseActionGroup.ExecuteQuery"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExecuteQueryAction"
                     text="Execute Query"
                     icon="AllIcons.RunConfigurations.TestState.Run"
                     description="Execute query">
@@ -204,13 +206,13 @@
                                    keymap="$default"/>
             </action>
             <action id="GraphDatabaseActionGroup.ExplainQuery"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExplainQueryAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExplainQueryAction"
                     text="Explain Query"
                     icon="AllIcons.RunConfigurations.TestState.Run"
                     description="Explain query">
             </action>
             <action id="GraphDatabaseActionGroup.ProfileQuery"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ProfileQueryAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ProfileQueryAction"
                     text="Profile Query"
                     icon="AllIcons.RunConfigurations.TestState.Run"
                     description="Profile query">
@@ -222,19 +224,19 @@
                text="Graph Database Console Tool Window Actions">
 
             <action id="GraphDatabaseConsoleToolWindowActions.ExecuteQuery"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExecuteQueryAction"
                     text="Execute Query"
                     icon="AllIcons.Toolwindows.ToolWindowRun"
                     description="Execute query">
             </action>
             <action id="GraphDatabaseConsoleToolWindowActions.CleanCanvas"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.ui.console.CleanCanvasAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.ui.console.CleanCanvasAction"
                     text="Clean Canvas"
                     icon="AllIcons.Actions.Refresh"
                     description="Clean canvas">
             </action>
             <action id="GraphDatabaseConsoleToolWindowActions.CopyQueryOutput"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.ui.console.CopyQueryOutputAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.ui.console.CopyQueryOutputAction"
                     text="Copy Query Result to Clipboard"
                     icon="AllIcons.Actions.Copy"
                     description="Copy query result to clipboard">
@@ -245,7 +247,7 @@
                text="Graph Database File Actions" description="Graph database file actions"
                icon="GraphIcons.Window.GRAPH" popup="true">
             <action id="GraphDatabaseFileActions.ExecuteAll"
-                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteAllAction"
+                    class="com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExecuteAllAction"
                     text="Execute All"
                     icon="AllIcons.RunConfigurations.TestState.Run">
             </action>

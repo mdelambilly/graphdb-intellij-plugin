@@ -1,31 +1,44 @@
 // Copied and adapted from plugin "Graph Database Support"
 // by Neueda Technologies, Ltd.
 // Modified by Alberto Venturini, 2022
+// Modified by Michel de Lambilly, 2026
 
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
-
-apply plugin: "org.jetbrains.intellij"
+apply plugin: "org.jetbrains.intellij.platform.module"
 apply plugin: "org.jetbrains.grammarkit"
+repositories {
+    intellijPlatform {
+        defaultRepositories()
+    }
+}
 
-intellij {
-    version = intellijSdkVersion
-    plugins = ['java']
+dependencies {
+    intellijPlatform {
+        intellijIdea(providers.gradleProperty('platformVersion'))
+        bundledPlugin('com.intellij.java')
+    }
+
+    implementation project(":platform")
+
+    testImplementation "org.junit.jupiter:junit-jupiter:$versionJunit"
+    testImplementation "org.mockito:mockito-core:$versionMockito"
+    testImplementation "org.assertj:assertj-core:$versionAssertj"
 }
 
 tasks.register("generateCypherLexer", GenerateLexerTask.class) {
-    sourceFile = new File("src/main/java/com/albertoventurini/graphdbplugin/language/cypher/lexer/CypherLexer.flex")
-    targetDir = "src/main/gen/com/albertoventurini/graphdbplugin/language/cypher/lexer/"
-    targetClass = "CypherLexer"
-    purgeOldFiles = true
+    sourceFile.set(layout.projectDirectory.file("src/main/java/com/github/mdelambilly/graphdbplugin/language/cypher/lexer/CypherLexer.flex"))
+    targetOutputDir.set(layout.projectDirectory.dir("src/main/gen/com/github/mdelambilly/graphdbplugin/language/cypher/lexer/"))
+    targetClass.set("CypherLexer")
+    purgeOldFiles.set(true)
 }
 
 tasks.register("generateCypherParser", GenerateParserTask.class) {
-    sourceFile = new File("src/main/java/com/albertoventurini/graphdbplugin/language/cypher/lexer/Cypher.bnf")
-    targetRoot = "src/main/gen"
-    pathToParser = "com/albertoventurini/graphdbplugin/language/cypher/CypherParser.java"
-    pathToPsiRoot = "com/albertoventurini/graphdbplugin/language/cypher/psi"
-    purgeOldFiles = true
+    sourceFile.set(layout.projectDirectory.file("src/main/java/com/github/mdelambilly/graphdbplugin/language/cypher/lexer/Cypher.bnf"))
+    targetRootOutputDir.set(layout.projectDirectory.dir("src/main/gen"))
+    pathToParser.set("com/github/mdelambilly/graphdbplugin/language/cypher/CypherParser.java")
+    pathToPsiRoot.set("com/github/mdelambilly/graphdbplugin/language/cypher/psi")
+    purgeOldFiles.set(true)
 }
 
 compileJava {
@@ -41,10 +54,6 @@ sourceSets {
         }
     }
 }
-
-dependencies {
-    implementation project(":platform")
-
-    testImplementation "org.mockito:mockito-core:$versionMockito"
-    testImplementation "org.assertj:assertj-core:$versionAssertj"
+test {
+    useJUnitPlatform()
 }
