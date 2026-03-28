@@ -3,6 +3,7 @@
  * <a href="https://github.com/neueda/jetbrains-plugin-graph-database-support">Graph Database Support</a>
  * by Neueda Technologies, Ltd.
  * Modified by Alberto Venturini, 2022
+ * Modified by Michel de Lambilly, 2026
  */
 {
   parserClass="com.github.mdelambilly.graphdbplugin.language.cypher.CypherParser"
@@ -482,7 +483,7 @@ Variable ::= SymbolicNameString {
     mixin="com.github.mdelambilly.graphdbplugin.language.cypher.psi.impl.CypherVariableElementImplMixin"
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherVariableElement"
 }
-FunctionName ::= UnescapedSymbolicNameString | EscapedSymbolicNameString | K_COUNT
+FunctionName ::= SymbolicNameString
 ProcedureName ::= SymbolicNameString
 CountStar ::= (K_COUNT "(" "*" ")") {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherIntegerYielding"
@@ -628,6 +629,72 @@ ReservedWord ::= K_MATCH
                 | K_ALLSHORTESTPATHS
                 | K_ALL
                 | K_ADD
+                // Phase 1: new keywords for admin commands
+                | K_ACCESS
+                | K_ACTIVE
+                | K_ADMIN
+                | K_ADMINISTRATOR
+                | K_ALTER
+                | K_ASSIGN
+                | K_BOOSTED
+                | K_BRIEF
+                | K_BTREE
+                | K_CATALOG
+                | K_CHANGE
+                | K_CONSTRAINTS
+                | K_COPY
+                | K_CURRENT
+                | K_DATABASE
+                | K_DATABASES
+                | K_DBMS
+                | K_DEFAULT
+                | K_DEFINED
+                | K_DENY
+                | K_ELEMENT
+                | K_ELEMENTS
+                | K_EXECUTE
+                | K_EXIST
+                | K_FUNCTION
+                | K_FUNCTIONS
+                | K_GRANT
+                | K_GRAPH
+                | K_GRAPHS
+                | K_IF
+                | K_INDEXES
+                | K_KEY
+                | K_LABEL
+                | K_LABELS
+                | K_MANAGEMENT
+                | K_NAME
+                | K_NAMES
+                | K_NEW
+                | K_NODES
+                | K_OUTPUT
+                | K_PASSWORD
+                | K_POPULATED
+                | K_PRIVILEGES
+                | K_PROCEDURE
+                | K_PROCEDURES
+                | K_PROPERTY
+                | K_READ
+                | K_RELATIONSHIPS
+                | K_REPLACE
+                | K_REQUIRED
+                | K_REVOKE
+                | K_ROLE
+                | K_ROLES
+                | K_SHOW
+                | K_STATUS
+                | K_STOP
+                | K_SUSPENDED
+                | K_TO
+                | K_TRAVERSE
+                | K_TYPE
+                | K_TYPES
+                | K_USER
+                | K_USERS
+                | K_VERBOSE
+                | K_WRITE
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier
