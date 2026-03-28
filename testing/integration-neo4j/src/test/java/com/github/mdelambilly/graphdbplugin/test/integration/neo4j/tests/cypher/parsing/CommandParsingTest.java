@@ -38,4 +38,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testConstraintPropertyUniqueDrop() {
         doTest(true);
     }
+
+    public void testDatabaseCommands() {
+        doTest(true);
+    }
 }

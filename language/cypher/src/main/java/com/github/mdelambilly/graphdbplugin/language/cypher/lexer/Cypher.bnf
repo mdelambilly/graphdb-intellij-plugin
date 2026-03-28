@@ -85,14 +85,19 @@ private statement_recover::= !(';'
                         | K_PROFILE
                         | K_EXPLAIN
                         | K_CALL
-                        | K_OPTIONAL
-                        | K_DETACH
+                        | K_OPTIONAL| K_DETACH
+                        | K_SHOW
+                        | K_STOP
+                        | K_ALTER
+                        | K_GRANT
+                        | K_DENY
+                        | K_REVOKE
                         | "}")
 
 /*************************
  * Statement
  */
-Statement ::= (K_BEGIN) | (K_COMMIT) | (QueryOptions? (Command | Query))
+Statement ::= (K_BEGIN) | (K_COMMIT) | SystemCommand | (QueryOptions? (Command | Query))
 
 /*************************
  * Statement options
@@ -131,6 +136,27 @@ RelationshipPropertyExistenceConstraintSyntax ::= K_CONSTRAINT K_ON Relationship
 RelationshipPatternSyntax ::= ("(" ")" "-" "[" Variable RelType "]" "-" "(" ")")
       | ("(" ")" "-" "[" Variable RelType "]" "-" ">" "(" ")")
       | ("(" ")" "<" "-" "[" Variable RelType "]" "-" "(" ")")
+
+/*************************
+ * System Commands
+ */
+SystemCommand ::= MultidatabaseCommand
+
+MultidatabaseCommand ::= ShowDatabase
+                       | CreateDatabase
+                       | DropDatabase
+                       | StartDatabase
+                       | StopDatabase
+
+ShowDatabase ::= K_SHOW (K_DATABASES | (K_DEFAULT K_DATABASE) | (K_DATABASE SymbolicNameString)) {pin=1}
+CreateDatabase ::= K_CREATE OrReplace? K_DATABASE SymbolicNameString IfNotExists? {pin=3}
+DropDatabase ::= K_DROP K_DATABASE SymbolicNameString IfExists? {pin=2}
+StartDatabase ::= K_START K_DATABASE SymbolicNameString {pin=2}
+StopDatabase ::= K_STOP K_DATABASE SymbolicNameString {pin=2}
+
+IfExists ::= K_IF_EXISTS
+IfNotExists ::= K_IF_NOT_EXISTS
+OrReplace ::= K_OR K_REPLACE
 
 /*************************
  * Indexes
