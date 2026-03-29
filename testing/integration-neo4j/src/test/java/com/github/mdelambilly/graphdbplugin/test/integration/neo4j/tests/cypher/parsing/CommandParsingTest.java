@@ -42,4 +42,12 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testDatabaseCommands() {
         doTest(true);
     }
+
+    public void testConstraintNodeKeyCreate() {
+        doTest(true);
+    }
+
+    public void testConstraintNodeKeyDrop() {
+        doTest(true);
+    }
 }

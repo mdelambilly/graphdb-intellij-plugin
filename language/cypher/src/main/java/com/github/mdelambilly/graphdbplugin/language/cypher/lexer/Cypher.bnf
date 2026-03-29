@@ -117,6 +117,8 @@ Command ::= CreateIndex
           | DropIndex
           | CreateUniqueConstraint
           | DropUniqueConstraint
+          | CreateNodeKeyConstraint
+          | DropNodeKeyConstraint
           | CreateNodePropertyExistenceConstraint
           | DropNodePropertyExistenceConstraint
           | CreateRelationshipPropertyExistenceConstraint
@@ -136,6 +138,9 @@ RelationshipPropertyExistenceConstraintSyntax ::= K_CONSTRAINT K_ON Relationship
 RelationshipPatternSyntax ::= ("(" ")" "-" "[" Variable RelType "]" "-" "(" ")")
       | ("(" ")" "-" "[" Variable RelType "]" "-" ">" "(" ")")
       | ("(" ")" "<" "-" "[" Variable RelType "]" "-" "(" ")")
+CreateNodeKeyConstraint ::= K_CREATE NodeKeyConstraintSyntax
+DropNodeKeyConstraint ::= K_DROP NodeKeyConstraintSyntax
+NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSERT "(" PropertyExpression ("," PropertyExpression)* ")" K_IS K_NODE K_KEY
 
 /*************************
  * System Commands
