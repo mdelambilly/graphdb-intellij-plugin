@@ -50,4 +50,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testConstraintNodeKeyDrop() {
         doTest(true);
     }
+
+    public void testUserCommands() {
+        doTest(true);
+    }
 }
