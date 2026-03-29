@@ -54,4 +54,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testUserCommands() {
         doTest(true);
     }
+
+    public void testRoleCommands() {
+        doTest(true);
+    }
 }

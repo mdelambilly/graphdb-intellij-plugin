@@ -147,6 +147,7 @@ NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSER
  */
 SystemCommand ::= MultidatabaseCommand
                | UserCommand
+               | RoleCommand
 
 MultidatabaseCommand ::= ShowDatabase
                        | CreateDatabase
@@ -174,6 +175,14 @@ SetPassword ::= K_PASSWORD StringLiteral PasswordStatus?
 SetStatus ::= K_STATUS UserStatus
 UserStatus ::= K_ACTIVE | K_SUSPENDED
 PasswordStatus ::= K_CHANGE (K_NOT)? K_REQUIRED
+
+RoleCommand ::= ShowRoles
+              | CreateRole
+              | DropRole
+
+ShowRoles ::= K_SHOW (K_ALL | K_POPULATED)? K_ROLES (K_WITH K_USERS)? {pin=2}
+CreateRole ::= K_CREATE OrReplace? K_ROLE SymbolicNameString IfNotExists? (K_AS K_COPY K_OF SymbolicNameString)? {pin=3}
+DropRole ::= K_DROP K_ROLE SymbolicNameString IfExists? {pin=2}
 
 IfExists ::= K_IF_EXISTS
 IfNotExists ::= K_IF_NOT_EXISTS
