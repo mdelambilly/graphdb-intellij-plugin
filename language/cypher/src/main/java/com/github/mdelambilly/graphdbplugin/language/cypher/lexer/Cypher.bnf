@@ -145,54 +145,55 @@ NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSER
 /*************************
  * System Commands
  */
-SystemCommand ::= MultidatabaseCommand
+SystemCommand ::= ShowCommand
+               | MultidatabaseCommand
                | UserCommand
                | RoleCommand
                | PrivilegeCommand
 
-MultidatabaseCommand ::= ShowDatabase
-                       | CreateDatabase
+ShowCommand ::= K_SHOW (ShowDatabase | ShowUsers | ShowRoles | ShowPrivileges) {pin=1}
+
+MultidatabaseCommand ::= CreateDatabase
                        | DropDatabase
                        | StartDatabase
                        | StopDatabase
 
-ShowDatabase ::= K_SHOW (K_DATABASES | (K_DEFAULT K_DATABASE) | (K_DATABASE SymbolicNameString)) {pin=1}
+ShowDatabase ::= K_DATABASES | (K_DEFAULT K_DATABASE) | (K_DATABASE SymbolicNameString)
 CreateDatabase ::= K_CREATE OrReplace? K_DATABASE SymbolicNameString IfNotExists? {pin=3}
 DropDatabase ::= K_DROP K_DATABASE SymbolicNameString IfExists? {pin=2}
 StartDatabase ::= K_START K_DATABASE SymbolicNameString {pin=2}
 StopDatabase ::= K_STOP K_DATABASE SymbolicNameString {pin=2}
 
-UserCommand ::= ShowUsers
-              | CreateUser
+UserCommand ::= CreateUser
               | DropUser
               | AlterUser
 
-ShowUsers ::= K_SHOW K_USERS {pin=2}
-CreateUser ::= K_CREATE OrReplace? K_USER SymbolicNameString IfNotExists? K_SET K_PASSWORD StringLiteral PasswordStatus? SetStatus? {pin=3}
+ShowUsers ::= K_USERS
+CreateUser ::= K_CREATE OrReplace? K_USER SymbolicNameString IfNotExists? SetPassword SetStatus? {pin=3}
 DropUser ::= K_DROP K_USER SymbolicNameString IfExists? {pin=2}
-AlterUser ::= K_ALTER K_CURRENT? K_USER SymbolicNameString? K_SET (SetPassword | SetStatus)+ {pin=1}
+AlterUser ::= K_ALTER K_CURRENT? K_USER SymbolicNameString? (SetPassword | SetStatus)+ {pin=1}
 
-SetPassword ::= K_PASSWORD StringLiteral PasswordStatus?
-SetStatus ::= K_STATUS UserStatus
+SetPassword ::= K_SET K_PASSWORD StringLiteral PasswordStatus?
+SetStatus ::= K_SET K_STATUS UserStatus
 UserStatus ::= K_ACTIVE | K_SUSPENDED
 PasswordStatus ::= K_CHANGE (K_NOT)? K_REQUIRED
 
-RoleCommand ::= ShowRoles
-              | CreateRole
+RoleCommand ::= CreateRole
               | DropRole
 
-ShowRoles ::= K_SHOW (K_ALL | K_POPULATED)? K_ROLES (K_WITH K_USERS)? {pin=2}
+ShowRoles ::= K_ALL K_ROLES (K_WITH K_USERS)?
+            | K_POPULATED K_ROLES (K_WITH K_USERS)?
+            | K_ROLES (K_WITH K_USERS)?
 CreateRole ::= K_CREATE OrReplace? K_ROLE SymbolicNameString IfNotExists? (K_AS K_COPY K_OF SymbolicNameString)? {pin=3}
 DropRole ::= K_DROP K_ROLE SymbolicNameString IfExists? {pin=2}
 
-PrivilegeCommand ::= ShowPrivileges
-                   | GrantPrivilege
+PrivilegeCommand ::= GrantPrivilege
                    | DenyPrivilege
                    | RevokePrivilege
 
-ShowPrivileges ::= K_SHOW (K_ALL K_PRIVILEGES)
-                 | (K_SHOW K_ROLE SymbolicNameString K_PRIVILEGES)
-                 | (K_SHOW K_USER SymbolicNameString? K_PRIVILEGES) {pin=1}
+ShowPrivileges ::= K_ALL K_PRIVILEGES
+                 | K_ROLE SymbolicNameString K_PRIVILEGES
+                 | K_USER SymbolicNameString? K_PRIVILEGES
 
 private GrantPrivilege ::= K_GRANT GrantPrivilegeBody
 private GrantPrivilegeBody ::= PrivilegeType K_ON PrivilegeScope K_TO Roles
