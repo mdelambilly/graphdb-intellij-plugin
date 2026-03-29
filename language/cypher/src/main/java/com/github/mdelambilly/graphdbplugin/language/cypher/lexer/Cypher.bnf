@@ -148,6 +148,7 @@ NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSER
 SystemCommand ::= MultidatabaseCommand
                | UserCommand
                | RoleCommand
+               | PrivilegeCommand
 
 MultidatabaseCommand ::= ShowDatabase
                        | CreateDatabase
@@ -183,6 +184,60 @@ RoleCommand ::= ShowRoles
 ShowRoles ::= K_SHOW (K_ALL | K_POPULATED)? K_ROLES (K_WITH K_USERS)? {pin=2}
 CreateRole ::= K_CREATE OrReplace? K_ROLE SymbolicNameString IfNotExists? (K_AS K_COPY K_OF SymbolicNameString)? {pin=3}
 DropRole ::= K_DROP K_ROLE SymbolicNameString IfExists? {pin=2}
+
+PrivilegeCommand ::= ShowPrivileges
+                   | GrantPrivilege
+                   | DenyPrivilege
+                   | RevokePrivilege
+
+ShowPrivileges ::= K_SHOW (K_ALL K_PRIVILEGES)
+                 | (K_SHOW K_ROLE SymbolicNameString K_PRIVILEGES)
+                 | (K_SHOW K_USER SymbolicNameString? K_PRIVILEGES) {pin=1}
+
+private GrantPrivilege ::= K_GRANT GrantPrivilegeBody
+private GrantPrivilegeBody ::= PrivilegeType K_ON PrivilegeScope K_TO Roles
+private DenyPrivilege ::= K_DENY GrantPrivilegeBody
+private RevokePrivilege ::= K_REVOKE RevokePart? GrantPrivilegeBody K_FROM Roles
+
+RevokePart ::= K_GRANT | K_DENY
+
+Roles ::= SymbolicNameString ("," SymbolicNameString)*
+
+PrivilegeScope ::= DatabaseScope | GraphScope
+
+DatabaseScope ::= (K_DATABASE | K_DATABASES) (SymbolicNameString ("," SymbolicNameString)* | "*")
+                | K_DEFAULT K_DATABASE
+
+GraphScope ::= (K_GRAPH | K_GRAPHS) (SymbolicNameString ("," SymbolicNameString)* | "*")
+             | K_DEFAULT K_GRAPH
+
+PrivilegeType ::= DatabasePrivilege | GraphPrivilege | DbmsPrivilege
+
+DatabasePrivilege ::= K_ALL K_DATABASE? K_PRIVILEGES
+                    | K_ACCESS
+                    | K_START
+                    | K_STOP
+                    | (K_CREATE | K_DROP) (K_INDEX | K_INDEXES | K_CONSTRAINT | K_CONSTRAINTS)
+                    | K_INDEX K_MANAGEMENT?
+                    | K_CONSTRAINT K_MANAGEMENT?
+                    | K_NAME K_MANAGEMENT?
+
+GraphPrivilege ::= K_ALL K_GRAPH? K_PRIVILEGES
+                 | K_TRAVERSE
+                 | K_READ "{" PropertiesList "}"
+                 | K_MATCH "{" PropertiesList "}"
+                 | K_WRITE
+
+DbmsPrivilege ::= K_ALL K_DBMS? K_PRIVILEGES
+                 | K_ROLE K_MANAGEMENT
+                 | K_USER K_MANAGEMENT
+                 | K_DATABASE K_MANAGEMENT
+                 | K_PRIVILEGE K_MANAGEMENT
+                 | (K_ASSIGN | K_REMOVE) (K_ROLE | K_PRIVILEGE)
+                 | K_EXECUTE (K_ADMIN | K_BOOSTED)? (K_PROCEDURE | K_PROCEDURES) PropertiesList?
+                 | K_EXECUTE (K_ADMIN | K_BOOSTED)? K_USER K_DEFINED? (K_FUNCTION | K_FUNCTIONS) PropertiesList?
+
+PropertiesList ::= "*" | (SymbolicNameString ("," SymbolicNameString)*)
 
 IfExists ::= K_IF_EXISTS
 IfNotExists ::= K_IF_NOT_EXISTS

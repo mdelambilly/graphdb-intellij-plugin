@@ -58,4 +58,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testRoleCommands() {
         doTest(true);
     }
+
+    public void testPrivilegeCommands() {
+        doTest(true);
+    }
 }
