@@ -629,7 +629,6 @@ PropertyKeyName ::= SymbolicNameString {
     mixin="com.github.mdelambilly.graphdbplugin.language.cypher.psi.impl.CypherPropertyKeyNameImplMixin"
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherNamedElement"
 }
-PropertyKeyNames ::= PropertyKeyName ("," PropertyKeyName)*
 
 RangeLiteral ::= (IntegerLiteral? ".." IntegerLiteral?) | (IntegerLiteral)
 MapLiteral ::= "{" (PropertyKeyName ":" Expression)? ("," PropertyKeyName ":" Expression)* "}" {
