@@ -102,7 +102,7 @@ Statement ::= (K_BEGIN) | (K_COMMIT) | SystemCommand | (QueryOptions? (Command |
 /*************************
  * Statement options
  */
-QueryOptions ::= AnyCypherOption* ;
+QueryOptions ::= AnyCypherOption*
 AnyCypherOption ::= CypherOption | Explain | Profile;
 CypherOption ::= K_CYPHER VersionNumber? ConfigurationOption*
 VersionNumber ::= DoubleLiteral
@@ -171,9 +171,9 @@ UserCommand ::= CreateUser
 ShowUsers ::= K_USERS
 CreateUser ::= K_CREATE OrReplace? K_USER SymbolicNameString IfNotExists? SetPassword SetStatus? {pin=3}
 DropUser ::= K_DROP K_USER SymbolicNameString IfExists? {pin=2}
-AlterUser ::= K_ALTER K_CURRENT? K_USER SymbolicNameString? (SetPassword | SetStatus)+ {pin=1}
+AlterUser ::= K_ALTER K_CURRENT? K_USER SymbolicNameString? (SetPassword | SetStatus)+ {pin=3}
 
-SetPassword ::= K_SET K_PASSWORD StringLiteral PasswordStatus?
+SetPassword ::= K_SET K_PASSWORD (StringLiteral | Parameter) PasswordStatus?
 SetStatus ::= K_SET K_STATUS UserStatus
 UserStatus ::= K_ACTIVE | K_SUSPENDED
 PasswordStatus ::= K_CHANGE (K_NOT)? K_REQUIRED
@@ -286,7 +286,7 @@ CreateLookupIndexForRelationshipPart ::= K_FOR "(" ")" "-" "[" Variable "]" "-" 
 
 CreateIndexOptionsPart ::= K_OPTIONS "{" LiteralEntry? ("," LiteralEntry)* "}"
 
-DropIndex ::= K_DROP K_INDEX IndexName K_IF_EXISTS?
+DropIndex ::= K_DROP K_INDEX IndexName IfExists?
 
 /*************************
  * Query
@@ -784,6 +784,7 @@ ReservedWord ::= K_MATCH
                 | K_OUTPUT
                 | K_PASSWORD
                 | K_POPULATED
+                | K_PRIVILEGE
                 | K_PRIVILEGES
                 | K_PROCEDURE
                 | K_PROCEDURES
