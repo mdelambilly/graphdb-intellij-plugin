@@ -54,6 +54,7 @@
     op_regexMatch="=~"
     op_ampersand="&"
     op_exclamation="!"
+    op_coloncolon="::"
   ]
 }
 
@@ -125,6 +126,8 @@ Command ::= CreateIndex
           | DropNodePropertyExistenceConstraint
           | CreateRelationshipPropertyExistenceConstraint
           | DropRelationshipPropertyExistenceConstraint
+          | CreateConstraint
+          | DropConstraint
 
 CreateUniqueConstraint ::= K_CREATE UniqueConstraintSyntax
 DropUniqueConstraint ::= K_DROP UniqueConstraintSyntax
@@ -143,6 +146,53 @@ RelationshipPatternSyntax ::= ("(" ")" "-" "[" Variable RelType "]" "-" "(" ")")
 CreateNodeKeyConstraint ::= K_CREATE NodeKeyConstraintSyntax
 DropNodeKeyConstraint ::= K_DROP NodeKeyConstraintSyntax
 NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSERT "(" PropertyExpression ("," PropertyExpression)* ")" K_IS K_NODE K_KEY
+
+/*************************
+ * Modern Constraint Syntax (Neo4j 4.4+)
+ *
+ * Supports named/unnamed constraints, IF NOT EXISTS, FOR/REQUIRE patterns,
+ * and all predicate kinds: IS UNIQUE, IS KEY, IS NODE KEY, IS REL KEY,
+ * IS NOT NULL, IS TYPED <type>, IS :: <type>.
+ *
+ * Legacy ASSERT-based rules above are kept for backward compatibility.
+ * New rules are listed AFTER legacy rules in Command so legacy syntax
+ * takes priority during PEG matching.
+ */
+
+// CREATE [OR REPLACE] CONSTRAINT [name] [IF NOT EXISTS] FOR (...) REQUIRE ...
+// ConstraintName uses a negative lookahead to avoid consuming FOR or IF NOT EXISTS
+// as a constraint name when the name is omitted.
+CreateConstraint ::= K_CREATE OrReplace? K_CONSTRAINT ConstraintName? IfNotExists?
+                     ConstraintBody {pin=3}
+
+ConstraintName ::= !(K_FOR | K_IF_NOT_EXISTS) SymbolicNameString
+
+private ConstraintBody ::= ConstraintForNode | ConstraintForRelationship
+
+// FOR (n:Label) REQUIRE n.prop IS ...
+private ConstraintForNode ::= K_FOR "(" Variable NodeLabel ")" K_REQUIRE ConstraintRequire
+
+// FOR ()-[r:TYPE]-() REQUIRE r.prop IS ...
+private ConstraintForRelationship ::= K_FOR "(" ")" "-" "[" Variable RelType "]" "-" "(" ")" K_REQUIRE ConstraintRequire
+
+// The requirement predicate and its type annotation
+ConstraintRequire ::= PropertyExpression ConstraintPredicate
+
+private ConstraintPredicate ::= K_IS K_NODE K_KEY
+                               | K_IS K_REL K_KEY
+                               | K_IS K_UNIQUE
+                               | K_IS K_KEY
+                               | K_IS K_NOT K_NULL
+                               | K_IS K_TYPED CypherTypeName
+                               | K_IS "::" CypherTypeName
+
+// Property type name for IS TYPED / IS :: constraints.
+// Handles: BOOLEAN, STRING, INTEGER, LIST<STRING>, etc. (via SymbolicNameString)
+// Optionally followed by NOT NULL to indicate a non-nullable type.
+CypherTypeName ::= SymbolicNameString ("<" SymbolicNameString ">")? (K_NOT K_NULL)?
+
+// DROP CONSTRAINT name [IF EXISTS]
+DropConstraint ::= K_DROP K_CONSTRAINT ConstraintName IfExists? {pin=2}
 
 /*************************
  * System Commands
@@ -837,6 +887,7 @@ ReservedWord ::= K_MATCH
                 | K_TO
                 | K_TRAVERSE
                 | K_TYPE
+                | K_TYPED
                 | K_TYPES
                 | K_USER
                 | K_USERS
@@ -995,6 +1046,7 @@ LabelReservedWord ::= K_MATCH
                 | K_TO
                 | K_TRAVERSE
                 | K_TYPE
+                | K_TYPED
                 | K_TYPES
                 | K_USER
                 | K_USERS

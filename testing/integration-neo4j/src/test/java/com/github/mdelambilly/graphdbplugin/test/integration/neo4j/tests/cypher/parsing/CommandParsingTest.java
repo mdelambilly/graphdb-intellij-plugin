@@ -62,4 +62,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testPrivilegeCommands() {
         doTest(true);
     }
+
+    public void testConstraintModern() {
+        doTest(true);
+    }
 }

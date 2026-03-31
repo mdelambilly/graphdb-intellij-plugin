@@ -185,6 +185,7 @@ K_SUSPENDED=[Ss][Uu][Ss][Pp][Ee][Nn][Dd][Ee][Dd]
 K_TO=[Tt][Oo]
 K_TRAVERSE=[Tt][Rr][Aa][Vv][Ee][Rr][Ss][Ee]
 K_TYPES=[Tt][Yy][Pp][Ee][Ss]
+K_TYPED=[Tt][Yy][Pp][Ee][Dd]
 K_TYPE=[Tt][Yy][Pp][Ee]
 K_USERS=[Uu][Ss][Ee][Rr][Ss]
 K_USER=[Uu][Ss][Ee][Rr]
@@ -249,6 +250,7 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   "["                       { return BRACKET_SQUAREOPEN; }
   "]"                       { return BRACKET_SQUARECLOSE; }
   "$"                       { return DOLLAR; }
+  "::"                      { return OP_COLONCOLON; }
   ":"                       { return OP_COLON; }
   "."                       { return OP_DOT; }
   "="                       { return OP_EQUAL; }
@@ -358,9 +360,10 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_SHORTESTPATH}          { return K_SHORTESTPATH; }
   {K_SUSPENDED}             { return K_SUSPENDED; }
   {K_STARTS}                { return K_STARTS; }
-  // TRAVERSE/TRUE/TYPES before TYPE/THEN/TO
+  // TRAVERSE/TRUE/TYPES/TYPED before TYPE/THEN/TO
   {K_TRAVERSE}              { return K_TRAVERSE; }
   {K_TYPES}                 { return K_TYPES; }
+  {K_TYPED}                 { return K_TYPED; }
   {K_TYPE}                  { return K_TYPE; }
   // USERS before USER, USING/UNWIND/UNION/UNIQUE before U-
   {K_USERS}                 { return K_USERS; }
