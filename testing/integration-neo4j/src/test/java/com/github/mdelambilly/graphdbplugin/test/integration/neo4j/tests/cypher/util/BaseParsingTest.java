@@ -43,6 +43,7 @@ public abstract class BaseParsingTest  extends ParsingTestCase {
     }
 
 // UNCOMMENT TO REGENERATE RESULT TESTS FILES
+// THEN RUN git add --renormalize .
 //    @Override
 //    protected void checkResult(@org.jetbrains.annotations.NotNull String targetDataName,
 //                               @org.jetbrains.annotations.NotNull com.intellij.psi.PsiFile file) {

@@ -23,4 +23,7 @@ public class PatternsParsingTest extends BaseParsingTest {
         doTest(true);
     }
 
+    public void testLabelExpressions() {
+        doTest(true);
+    }
 }

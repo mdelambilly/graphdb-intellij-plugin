@@ -265,11 +265,13 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   "+="                      { return OP_PLUSEQUALS; }
   "<>"                      { return OP_INVALIDNOTEQUALS; }
   "!="                      { return OP_NOTEQUALS; }
+  "!"                       { return OP_EXCLAMATION; }
   "<="                      { return OP_LESSTHANEQUALS; }
   ">="                      { return OP_GREATERTHANEQUALS; }
   "/"                       { return OP_DIVIDE; }
   "%"                       { return OP_MODULO; }
   "^"                       { return OP_POW; }
+  "&"                       { return OP_AMPERSAND; }
   "=~"                      { return OP_REGEXMATCH; }
 
   // === Compound tokens FIRST (longest match) ===

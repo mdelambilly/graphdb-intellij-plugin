@@ -57,6 +57,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .between(CypherTypes.K_MATCH, CypherTypes.PATTERN_WITH_WHERE_CLAUSE).spaces(1)
 
                 .between(CypherTypes.NODE_LABELS, CypherTypes.PROPERTIES).spaces(1)
+                .between(CypherTypes.LABEL_EXPRESSION, CypherTypes.PROPERTIES).spaces(1)
                 .between(CypherTypes.RELATIONSHIP_TYPES, CypherTypes.PROPERTIES).spaces(1)
                 .between(CypherTypes.PARENTHESIZED_EXPRESSION, CypherTypes.PATTERN).none()
 
@@ -68,6 +69,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .between(CypherTypes.RELATIONSHIP_PATTERN, CypherTypes.NODE_PATTERN).none()
                 .between(CypherTypes.PATTERN_ELEMENT_CHAIN, CypherTypes.NODE_PATTERN).none()
                 .between(CypherTypes.VARIABLE, CypherTypes.NODE_LABELS).none()
+                .between(CypherTypes.VARIABLE, CypherTypes.LABEL_EXPRESSION).none()
 
                 .between(CypherTypes.K_FOREACH, CypherTypes.PARENTHESIS_OPEN).spaces(1)
                 .between(CypherTypes.EXPRESSION, CypherTypes.OP_PIPE).spaces(1)
