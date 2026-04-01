@@ -26,4 +26,8 @@ public class PatternsParsingTest extends BaseParsingTest {
     public void testLabelExpressions() {
         doTest(true);
     }
+
+    public void testQuantifiedPaths() {
+        doTest(true);
+    }
 }

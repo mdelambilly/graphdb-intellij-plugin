@@ -495,13 +495,19 @@ AllShortestPathsFunctionInvocation ::= (K_ALLSHORTESTPATHS "(" PatternElement ")
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherListYielding"
 }
 PatternElement ::= ("(" PatternElement ")") | (NodePattern PatternElementChain*)
-PatternElementChain ::= RelationshipPattern NodePattern {pin=1}
+PatternElementChain ::= RelationshipPattern Quantifier? NodePattern {pin=1}
 
 RelationshipPattern ::= LeftArrowHead? Dash RelationshipDetail? Dash RightArrowHead? {pin=2}
 
 RelationshipDetail ::= "[" Variable? "?"? LabelExpression? MaybeVariableLength? Properties? Where? "]" {pin=1}
 RelationshipTypes ::= ":" RelTypeName ("|" ":"? RelTypeName)* {pin=1}
 MaybeVariableLength ::= ("*" RangeLiteral?)
+
+// Quantifier: fixed {n}, range {m,n}/{m,}/{,n}, or symbolic + and * (Neo4j 5+ GPM)
+Quantifier ::= ("{" UnsignedInteger "}")
+             | ("{" UnsignedInteger? "," UnsignedInteger? "}")
+             | "+"
+             | "*"
 
 NodePattern ::= "(" Variable? LabelExpression? Properties? Where? ")" {pin=1}
 
