@@ -1,0 +1,9 @@
+MATCH ((a)-[:KNOWS]->(b)){2,4} RETURN b
+MATCH ((a)-[:FOLLOWS]->(b) WHERE a.age > b.age)+ RETURN b
+MATCH ((a)-[:KNOWS]->(b)-[:LIKES]->(c))* RETURN c
+MATCH ANY SHORTEST (a)-[:KNOWS]->(b) RETURN b
+MATCH ALL SHORTEST (a)-[:KNOWS]->(b) RETURN b
+MATCH SHORTEST 3 PATHS (a)-[:KNOWS]->(b) RETURN b
+MATCH ANY 2 PATHS (a)-[:KNOWS]->(b) RETURN b
+MATCH p = ANY SHORTEST (a)-[:KNOWS]->(b) RETURN p
+MATCH (a)-[:KNOWS]->(b)-[:LIKES]->(c) RETURN c

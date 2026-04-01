@@ -483,7 +483,7 @@ Where ::= K_WHERE Expression
  * Patterns
  */
 Pattern ::= PatternPart ("," PatternPart)*
-PatternPart ::= (Variable "=")? AnonymousPatternPart
+PatternPart ::= (Variable "=")? Selector? AnonymousPatternPart
 AnonymousPatternPart ::= ShortestPathPattern | PatternElement
 ShortestPathPattern ::= ShortestPathFunctionInvocation | AllShortestPathsFunctionInvocation {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherTypePropagator"
@@ -494,7 +494,7 @@ ShortestPathFunctionInvocation ::= (K_SHORTESTPATH "(" PatternElement ")") {
 AllShortestPathsFunctionInvocation ::= (K_ALLSHORTESTPATHS "(" PatternElement ")") {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherListYielding"
 }
-PatternElement ::= ("(" PatternElement ")") | (NodePattern PatternElementChain*)
+PatternElement ::= ParenthesizedPath | (NodePattern PatternElementChain*)
 PatternElementChain ::= RelationshipPattern Quantifier? NodePattern {pin=1}
 
 RelationshipPattern ::= LeftArrowHead? Dash RelationshipDetail? Dash RightArrowHead? {pin=2}
@@ -508,6 +508,21 @@ Quantifier ::= ("{" UnsignedInteger "}")
              | ("{" UnsignedInteger? "," UnsignedInteger? "}")
              | "+"
              | "*"
+
+// ParenthesizedPath: ( Pattern WHERE? ) Quantifier?   (Neo4j 5+ GPM)
+// No pin — must backtrack when inner Pattern fails (e.g. plain NodePattern)
+ParenthesizedPath ::= "(" Pattern Where? ")" Quantifier?
+
+// Selector: path selector for MATCH (ANY SHORTEST, ALL, SHORTEST n, etc.)
+// PEG ordering: longer/more specific alternatives first to avoid premature match.
+// ANY SHORTEST and ALL SHORTEST before ANY/ALL alone.
+// SHORTEST+GROUP before SHORTEST+n (GROUP variant has optional integer).
+Selector ::= (K_ANY K_SHORTEST (K_PATH | K_PATHS)?)
+           | (K_ALL K_SHORTEST (K_PATH | K_PATHS)?)
+           | (K_SHORTEST UnsignedInteger? (K_PATH | K_PATHS)? (K_GROUP | K_GROUPS))
+           | (K_SHORTEST UnsignedInteger (K_PATH | K_PATHS)?)
+           | (K_ANY UnsignedInteger? (K_PATH | K_PATHS)?)
+           | (K_ALL (K_PATH | K_PATHS)?)
 
 NodePattern ::= "(" Variable? LabelExpression? Properties? Where? ")" {pin=1}
 
@@ -937,6 +952,12 @@ ReservedWord ::= K_MATCH
                 | K_USERS
                 | K_VERBOSE
                 | K_WRITE
+                // Phase G2: GPM path selectors
+                | K_SHORTEST
+                | K_PATHS
+                | K_PATH
+                | K_GROUPS
+                | K_GROUP
 
 // Used in IS label expressions — excludes K_NOT and K_NULL to avoid
 // ambiguity with IS NOT NULL / IS NULL in Expression3.
@@ -1100,6 +1121,12 @@ LabelReservedWord ::= K_MATCH
                 | K_USERS
                 | K_VERBOSE
                 | K_WRITE
+                // Phase G2: GPM path selectors
+                | K_SHORTEST
+                | K_PATHS
+                | K_PATH
+                | K_GROUPS
+                | K_GROUP
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier

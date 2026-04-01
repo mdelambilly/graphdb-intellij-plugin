@@ -30,4 +30,8 @@ public class PatternsParsingTest extends BaseParsingTest {
     public void testQuantifiedPaths() {
         doTest(true);
     }
+
+    public void testAdvancedPaths() {
+        doTest(true);
+    }
 }

@@ -196,6 +196,13 @@ K_USE=[Uu][Ss][Ee]
 K_VERBOSE=[Vv][Ee][Rr][Bb][Oo][Ss][Ee]
 K_WRITE=[Ww][Rr][Ii][Tt][Ee]
 
+// ===== New keywords (Phase G2 — GPM parenthesized paths and selectors) =====
+K_SHORTEST=[Ss][Hh][Oo][Rr][Tt][Ee][Ss][Tt]
+K_PATHS=[Pp][Aa][Tt][Hh][Ss]
+K_PATH=[Pp][Aa][Tt][Hh]
+K_GROUPS=[Gg][Rr][Oo][Uu][Pp][Ss]
+K_GROUP=[Gg][Rr][Oo][Uu][Pp]
+
 // ===== Compound tokens (legacy, kept for backward compatibility) =====
 // These use fragments that are NOT promoted to standalone tokens.
 // The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
@@ -476,6 +483,13 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_TO}                    { return K_TO; }
   {K_VERBOSE}               { return K_VERBOSE; }
   {K_WRITE}                 { return K_WRITE; }
+
+  // Phase G2 keywords (PATHS/GROUPS before PATH/GROUP for clarity)
+  {K_PATHS}                 { return K_PATHS; }
+  {K_PATH}                  { return K_PATH; }
+  {K_GROUPS}                { return K_GROUPS; }
+  {K_GROUP}                 { return K_GROUP; }
+  {K_SHORTEST}              { return K_SHORTEST; }
 
   // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }
