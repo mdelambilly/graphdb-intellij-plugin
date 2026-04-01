@@ -216,19 +216,48 @@ private ShowBody ::= ShowDatabase ShowTail?
                    | ShowUsers ShowTail?
                    | ShowRoles ShowTail?
                    | ShowPrivileges ShowTail?
+                   | ShowAliases ShowTail?
 
 private ShowTail ::= YieldClause Return? | Where
 
-MultidatabaseCommand ::= CreateDatabase
+MultidatabaseCommand ::= CreateCompositeDatabase
+                       | CreateDatabase
+                       | CreateAlias
+                       | AlterDatabase
+                       | AlterAlias
                        | DropDatabase
+                       | DropAlias
                        | StartDatabase
                        | StopDatabase
 
 ShowDatabase ::= K_DATABASES | (K_DEFAULT K_DATABASE) | (K_DATABASE SymbolicNameString)
-CreateDatabase ::= K_CREATE OrReplace? K_DATABASE SymbolicNameString IfNotExists? {pin=3}
-DropDatabase ::= K_DROP K_DATABASE SymbolicNameString IfExists? {pin=2}
-StartDatabase ::= K_START K_DATABASE SymbolicNameString {pin=2}
-StopDatabase ::= K_STOP K_DATABASE SymbolicNameString {pin=2}
+CreateCompositeDatabase ::= K_CREATE K_COMPOSITE K_DATABASE SymbolicAliasName IfNotExists? Options? WaitClause? {pin=3}
+CreateDatabase ::= K_CREATE OrReplace? K_DATABASE SymbolicAliasName IfNotExists?
+                   (K_TOPOLOGY (UnsignedInteger (K_PRIMARY | K_PRIMARIES | K_SECONDARY | K_SECONDARIES))+)?
+                   Options? WaitClause? {pin=3}
+DropDatabase ::= K_DROP K_COMPOSITE? K_DATABASE SymbolicAliasName IfExists? ((K_DUMP | K_DESTROY) K_DATA)? WaitClause? {pin=3}
+StartDatabase ::= K_START K_DATABASE SymbolicAliasName WaitClause? {pin=2}
+StopDatabase ::= K_STOP K_DATABASE SymbolicAliasName WaitClause? {pin=2}
+AlterDatabase ::= K_ALTER K_DATABASE SymbolicAliasName IfExists?
+                  ((K_SET AlterDatabaseOption)+ | (K_REMOVE K_OPTION SymbolicNameString)+)
+                  WaitClause? {pin=2}
+private AlterDatabaseOption ::= K_ACCESS K_READ (K_ONLY | K_WRITE)
+                               | K_TOPOLOGY (UnsignedInteger (K_PRIMARY | K_PRIMARIES | K_SECONDARY | K_SECONDARIES))+
+                               | K_OPTION SymbolicNameString Expression
+WaitClause ::= K_WAIT (UnsignedInteger (K_SEC | K_SECOND | K_SECONDS)?)? | K_NOWAIT
+Options ::= K_OPTIONS (MapLiteral | Parameter)
+StringOrParameter ::= StringLiteral | Parameter
+PasswordExpression ::= StringLiteral | Parameter
+CreateAlias ::= K_CREATE K_ALIAS SymbolicAliasName IfNotExists? K_FOR K_DATABASE SymbolicAliasName
+                (K_AT StringOrParameter K_USER SymbolicNameOrStringParameter K_PASSWORD PasswordExpression (K_DRIVER (MapLiteral | Parameter))?)?
+                (K_PROPERTIES (MapLiteral | Parameter))? {pin=2}
+DropAlias ::= K_DROP K_ALIAS SymbolicAliasName IfExists? K_FOR K_DATABASE {pin=2}
+AlterAlias ::= K_ALTER K_ALIAS SymbolicAliasName IfExists? K_SET K_DATABASE AlterAliasOption+ {pin=2}
+private AlterAliasOption ::= K_TARGET SymbolicAliasName (K_AT StringOrParameter)?
+                            | K_USER SymbolicNameOrStringParameter
+                            | K_PASSWORD PasswordExpression
+                            | K_DRIVER (MapLiteral | Parameter)
+                            | K_PROPERTIES (MapLiteral | Parameter)
 
 UserCommand ::= CreateUser
               | DropUser
@@ -267,6 +296,8 @@ ShowProcedures ::= K_PROCEDURES | K_PROCEDURE
 ShowFunctions ::= K_FUNCTIONS | K_FUNCTION
 ShowCurrentUser ::= K_CURRENT K_USER
 ShowTransactions ::= K_TRANSACTIONS | K_TRANSACTION
+ShowAliases ::= (K_ALIAS | K_ALIASES) ShowAliasName? K_FOR (K_DATABASE | K_DATABASES)
+private ShowAliasName ::= !(K_FOR) SymbolicAliasName
 
 //-- YIELD clause (SHOW commands, Neo4j 4.4+)
 YieldClause ::= K_YIELD ("*" | YieldItem ("," YieldItem)*) Order? Skip? Limit? Where?
@@ -1042,6 +1073,27 @@ ReservedWord ::= K_MATCH
                 | K_SETTINGS
                 | K_SETTING
                 | K_TERMINATE
+                // Phase I: extended database admin commands
+                | K_TOPOLOGY
+                | K_PRIMARIES
+                | K_PRIMARY
+                | K_SECONDARIES
+                | K_SECONDARY
+                | K_WAIT
+                | K_NOWAIT
+                | K_SECONDS
+                | K_SECOND
+                | K_SEC
+                | K_DUMP
+                | K_DESTROY
+                | K_DATA
+                | K_TARGET
+                | K_DRIVER
+                | K_PROPERTIES
+                | K_ONLY
+                | K_OPTION
+                | K_AT
+                | K_ALIASES
 
 // Used in IS label expressions — excludes K_NOT and K_NULL to avoid
 // ambiguity with IS NOT NULL / IS NULL in Expression3.
@@ -1225,6 +1277,27 @@ LabelReservedWord ::= K_MATCH
                 | K_SETTINGS
                 | K_SETTING
                 | K_TERMINATE
+                // Phase I: extended database admin commands
+                | K_TOPOLOGY
+                | K_PRIMARIES
+                | K_PRIMARY
+                | K_SECONDARIES
+                | K_SECONDARY
+                | K_WAIT
+                | K_NOWAIT
+                | K_SECONDS
+                | K_SECOND
+                | K_SEC
+                | K_DUMP
+                | K_DESTROY
+                | K_DATA
+                | K_TARGET
+                | K_DRIVER
+                | K_PROPERTIES
+                | K_ONLY
+                | K_OPTION
+                | K_AT
+                | K_ALIASES
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier

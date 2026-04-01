@@ -217,6 +217,28 @@ K_SETTINGS=[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]
 K_SETTING=[Ss][Ee][Tt][Tt][Ii][Nn][Gg]
 K_TERMINATE=[Tt][Ee][Rr][Mm][Ii][Nn][Aa][Tt][Ee]
 
+// ===== New keywords (Phase I — extended database admin commands) =====
+K_TOPOLOGY=[Tt][Oo][Pp][Oo][Ll][Oo][Gg][Yy]
+K_PRIMARIES=[Pp][Rr][Ii][Mm][Aa][Rr][Ii][Ee][Ss]
+K_PRIMARY=[Pp][Rr][Ii][Mm][Aa][Rr][Yy]
+K_SECONDARIES=[Ss][Ee][Cc][Oo][Nn][Dd][Aa][Rr][Ii][Ee][Ss]
+K_SECONDARY=[Ss][Ee][Cc][Oo][Nn][Dd][Aa][Rr][Yy]
+K_WAIT=[Ww][Aa][Ii][Tt]
+K_NOWAIT=[Nn][Oo][Ww][Aa][Ii][Tt]
+K_SECONDS=[Ss][Ee][Cc][Oo][Nn][Dd][Ss]
+K_SECOND=[Ss][Ee][Cc][Oo][Nn][Dd]
+K_SEC=[Ss][Ee][Cc]
+K_DUMP=[Dd][Uu][Mm][Pp]
+K_DESTROY=[Dd][Ee][Ss][Tt][Rr][Oo][Yy]
+K_DATA=[Dd][Aa][Tt][Aa]
+K_TARGET=[Tt][Aa][Rr][Gg][Ee][Tt]
+K_DRIVER=[Dd][Rr][Ii][Vv][Ee][Rr]
+K_PROPERTIES=[Pp][Rr][Oo][Pp][Ee][Rr][Tt][Ii][Ee][Ss]
+K_ONLY=[Oo][Nn][Ll][Yy]
+K_OPTION=[Oo][Pp][Tt][Ii][Oo][Nn]
+K_AT=[Aa][Tt]
+K_ALIASES=[Aa][Ll][Ii][Aa][Ss][Ee][Ss]
+
 // ===== Compound tokens (legacy, kept for backward compatibility) =====
 // These use fragments that are NOT promoted to standalone tokens.
 // The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
@@ -368,6 +390,7 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   // OPTIONAL/OPTIONS before OR/ORDER/OUTPUT
   {K_OPTIONAL}              { return K_OPTIONAL; }
   {K_OPTIONS}               { return K_OPTIONS; }
+  {K_OPTION}                { return K_OPTION; }
   // PASSWORD, POPULATED, PRIVILEGES before PROCEDURE/PROCEDURES/PROFILE/PROPERTY
   {K_POPULATED}             { return K_POPULATED; }
   {K_PRIVILEGES}            { return K_PRIVILEGES; }
@@ -519,6 +542,27 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_IMPERSONATE}           { return K_IMPERSONATE; }
   {K_RENAME}                { return K_RENAME; }
   {K_TERMINATE}             { return K_TERMINATE; }
+
+  // Phase I keywords (PRIMARIES before PRIMARY, SECONDARIES before SECONDARY, SECONDS before SECOND before SEC, ALIASES before ALIAS, PROPERTIES before PROPERTY handled by maximal munch)
+  {K_TOPOLOGY}              { return K_TOPOLOGY; }
+  {K_PRIMARIES}             { return K_PRIMARIES; }
+  {K_PRIMARY}               { return K_PRIMARY; }
+  {K_SECONDARIES}           { return K_SECONDARIES; }
+  {K_SECONDARY}             { return K_SECONDARY; }
+  {K_WAIT}                  { return K_WAIT; }
+  {K_NOWAIT}                { return K_NOWAIT; }
+  {K_SECONDS}               { return K_SECONDS; }
+  {K_SECOND}                { return K_SECOND; }
+  {K_SEC}                   { return K_SEC; }
+  {K_DUMP}                  { return K_DUMP; }
+  {K_DESTROY}               { return K_DESTROY; }
+  {K_DATA}                  { return K_DATA; }
+  {K_TARGET}                { return K_TARGET; }
+  {K_DRIVER}                { return K_DRIVER; }
+  {K_PROPERTIES}            { return K_PROPERTIES; }
+  {K_ONLY}                  { return K_ONLY; }
+  {K_ALIASES}               { return K_ALIASES; }
+  {K_AT}                    { return K_AT; }
 
   // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }

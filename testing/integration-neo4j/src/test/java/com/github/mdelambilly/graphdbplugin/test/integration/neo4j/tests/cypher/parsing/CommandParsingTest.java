@@ -70,4 +70,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testShowCommands() {
         doTest(true);
     }
+
+    public void testDatabaseAdmin() {
+        doTest(true);
+    }
 }
