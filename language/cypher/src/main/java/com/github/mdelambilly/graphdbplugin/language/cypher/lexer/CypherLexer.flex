@@ -187,6 +187,8 @@ K_TRAVERSE=[Tt][Rr][Aa][Vv][Ee][Rr][Ss][Ee]
 K_TYPES=[Tt][Yy][Pp][Ee][Ss]
 K_TYPED=[Tt][Yy][Pp][Ee][Dd]
 K_TYPE=[Tt][Yy][Pp][Ee]
+K_TRANSACTIONS=[Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn][Ss]
+K_TRANSACTION=[Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn]
 K_USERS=[Uu][Ss][Ee][Rr][Ss]
 K_USER=[Uu][Ss][Ee][Rr]
 K_USE=[Uu][Ss][Ee]
@@ -361,7 +363,9 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_SHORTESTPATH}          { return K_SHORTESTPATH; }
   {K_SUSPENDED}             { return K_SUSPENDED; }
   {K_STARTS}                { return K_STARTS; }
-  // TRAVERSE/TRUE/TYPES/TYPED before TYPE/THEN/TO
+  // TRANSACTIONS before TRANSACTION; TRAVERSE/TRUE/TYPES/TYPED before TYPE/THEN/TO
+  {K_TRANSACTIONS}          { return K_TRANSACTIONS; }
+  {K_TRANSACTION}           { return K_TRANSACTION; }
   {K_TRAVERSE}              { return K_TRAVERSE; }
   {K_TYPES}                 { return K_TYPES; }
   {K_TYPED}                 { return K_TYPED; }

@@ -66,4 +66,8 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testConstraintModern() {
         doTest(true);
     }
+
+    public void testShowCommands() {
+        doTest(true);
+    }
 }

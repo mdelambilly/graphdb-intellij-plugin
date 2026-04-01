@@ -204,7 +204,20 @@ SystemCommand ::= ShowCommand
                | RoleCommand
                | PrivilegeCommand
 
-ShowCommand ::= K_SHOW (ShowDatabase | ShowUsers | ShowRoles | ShowPrivileges) {pin=1}
+ShowCommand ::= K_SHOW ShowBody {pin=1}
+
+private ShowBody ::= ShowDatabase ShowTail?
+                   | ShowIndexes ShowTail?
+                   | ShowConstraints ShowTail?
+                   | ShowProcedures ShowTail?
+                   | ShowFunctions ShowTail?
+                   | ShowCurrentUser ShowTail?
+                   | ShowTransactions ShowTail?
+                   | ShowUsers ShowTail?
+                   | ShowRoles ShowTail?
+                   | ShowPrivileges ShowTail?
+
+private ShowTail ::= YieldClause Return? | Where
 
 MultidatabaseCommand ::= CreateDatabase
                        | DropDatabase
@@ -247,6 +260,17 @@ PrivilegeCommand ::= GrantPrivilege
 ShowPrivileges ::= K_ALL K_PRIVILEGES
                  | K_ROLE SymbolicNameString K_PRIVILEGES
                  | K_USER SymbolicNameString? K_PRIVILEGES
+
+ShowIndexes ::= K_INDEXES | K_INDEX
+ShowConstraints ::= K_CONSTRAINTS | K_CONSTRAINT
+ShowProcedures ::= K_PROCEDURES | K_PROCEDURE
+ShowFunctions ::= K_FUNCTIONS | K_FUNCTION
+ShowCurrentUser ::= K_CURRENT K_USER
+ShowTransactions ::= K_TRANSACTIONS | K_TRANSACTION
+
+//-- YIELD clause (SHOW commands, Neo4j 4.4+)
+YieldClause ::= K_YIELD ("*" | YieldItem ("," YieldItem)*) Order? Skip? Limit? Where?
+YieldItem ::= Variable (K_AS Variable)?
 
 private GrantPrivilege ::= K_GRANT GrantPrivilegeBody
 private GrantPrivilegeBody ::= PrivilegeType K_ON PrivilegeScope K_TO Roles
@@ -890,6 +914,8 @@ ReservedWord ::= K_MATCH
                 | K_STOP
                 | K_SUSPENDED
                 | K_TO
+                | K_TRANSACTION
+                | K_TRANSACTIONS
                 | K_TRAVERSE
                 | K_TYPE
                 | K_TYPED
@@ -1050,6 +1076,8 @@ LabelReservedWord ::= K_MATCH
                 | K_STOP
                 | K_SUSPENDED
                 | K_TO
+                | K_TRANSACTION
+                | K_TRANSACTIONS
                 | K_TRAVERSE
                 | K_TYPE
                 | K_TYPED
