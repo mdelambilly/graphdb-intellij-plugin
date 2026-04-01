@@ -203,6 +203,20 @@ K_PATH=[Pp][Aa][Tt][Hh]
 K_GROUPS=[Gg][Rr][Oo][Uu][Pp][Ss]
 K_GROUP=[Gg][Rr][Oo][Uu][Pp]
 
+// ===== New keywords (Phase H — full privilege model) =====
+K_ALIAS=[Aa][Ll][Ii][Aa][Ss]
+K_COMPOSITE=[Cc][Oo][Mm][Pp][Oo][Ss][Ii][Tt][Ee]
+K_HOME=[Hh][Oo][Mm][Ee]
+K_IMMUTABLE=[Ii][Mm][Mm][Uu][Tt][Aa][Bb][Ll][Ee]
+K_IMPERSONATE=[Ii][Mm][Pp][Ee][Rr][Ss][Oo][Nn][Aa][Tt][Ee]
+K_PASSWORDS=[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd][Ss]
+K_RENAME=[Rr][Ee][Nn][Aa][Mm][Ee]
+K_SERVERS=[Ss][Ee][Rr][Vv][Ee][Rr][Ss]
+K_SERVER=[Ss][Ee][Rr][Vv][Ee][Rr]
+K_SETTINGS=[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]
+K_SETTING=[Ss][Ee][Tt][Tt][Ii][Nn][Gg]
+K_TERMINATE=[Tt][Ee][Rr][Mm][Ii][Nn][Aa][Tt][Ee]
+
 // ===== Compound tokens (legacy, kept for backward compatibility) =====
 // These use fragments that are NOT promoted to standalone tokens.
 // The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
@@ -357,6 +371,7 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   // PASSWORD, POPULATED, PRIVILEGES before PROCEDURE/PROCEDURES/PROFILE/PROPERTY
   {K_POPULATED}             { return K_POPULATED; }
   {K_PRIVILEGES}            { return K_PRIVILEGES; }
+  {K_PRIVILEGE}             { return K_PRIVILEGE; }
   {K_PROCEDURES}            { return K_PROCEDURES; }
   {K_PROCEDURE}             { return K_PROCEDURE; }
   // RELATIONSHIPS before RELATIONSHIP, REPLACE/REQUIRED/REVOKE/REMOVE/RETURN/REDUCE before RE-
@@ -490,6 +505,20 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_GROUPS}                { return K_GROUPS; }
   {K_GROUP}                 { return K_GROUP; }
   {K_SHORTEST}              { return K_SHORTEST; }
+
+  // Phase H keywords (SERVERS before SERVER, PASSWORDS before PASSWORD handled by maximal munch)
+  {K_SERVERS}               { return K_SERVERS; }
+  {K_SERVER}                { return K_SERVER; }
+  {K_SETTINGS}              { return K_SETTINGS; }
+  {K_SETTING}               { return K_SETTING; }
+  {K_PASSWORDS}             { return K_PASSWORDS; }
+  {K_ALIAS}                 { return K_ALIAS; }
+  {K_COMPOSITE}             { return K_COMPOSITE; }
+  {K_HOME}                  { return K_HOME; }
+  {K_IMMUTABLE}             { return K_IMMUTABLE; }
+  {K_IMPERSONATE}           { return K_IMPERSONATE; }
+  {K_RENAME}                { return K_RENAME; }
+  {K_TERMINATE}             { return K_TERMINATE; }
 
   // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }

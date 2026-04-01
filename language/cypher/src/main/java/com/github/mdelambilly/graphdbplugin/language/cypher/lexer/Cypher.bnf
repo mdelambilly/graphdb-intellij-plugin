@@ -253,9 +253,9 @@ ShowRoles ::= K_ALL K_ROLES (K_WITH K_USERS)?
 CreateRole ::= K_CREATE OrReplace? K_ROLE SymbolicNameString IfNotExists? (K_AS K_COPY K_OF SymbolicNameString)? {pin=3}
 DropRole ::= K_DROP K_ROLE SymbolicNameString IfExists? {pin=2}
 
-PrivilegeCommand ::= GrantPrivilege
-                   | DenyPrivilege
-                   | RevokePrivilege
+PrivilegeCommand ::= GrantCommand
+                   | DenyCommand
+                   | RevokeCommand
 
 ShowPrivileges ::= K_ALL K_PRIVILEGES
                  | K_ROLE SymbolicNameString K_PRIVILEGES
@@ -272,49 +272,120 @@ ShowTransactions ::= K_TRANSACTIONS | K_TRANSACTION
 YieldClause ::= K_YIELD ("*" | YieldItem ("," YieldItem)*) Order? Skip? Limit? Where?
 YieldItem ::= Variable (K_AS Variable)?
 
-private GrantPrivilege ::= K_GRANT GrantPrivilegeBody
-private GrantPrivilegeBody ::= PrivilegeType K_ON PrivilegeScope K_TO Roles
-private DenyPrivilege ::= K_DENY GrantPrivilegeBody
-private RevokePrivilege ::= K_REVOKE RevokePart? GrantPrivilegeBody K_FROM Roles
+//-- GRANT / DENY / REVOKE commands (Phase H — full GPM privilege model)
+GrantCommand ::= K_GRANT (K_IMMUTABLE? GrantPrivilege | K_ROLE (GrantRoleManagement | GrantRole) | K_ROLES GrantRole | K_IMMUTABLE K_ROLE GrantRoleManagement) {pin=1}
+DenyCommand ::= K_DENY K_IMMUTABLE? (DenyPrivilege | K_ROLE RoleManagementPrivilege K_TO SymbolicNameOrStringParameterList) {pin=1}
+RevokeCommand ::= K_REVOKE (K_DENY K_IMMUTABLE? | K_GRANT K_IMMUTABLE? | K_IMMUTABLE)? (RevokePrivilege | K_ROLE (RevokeRoleManagement | RevokeRole) | K_ROLES RevokeRole) {pin=1}
 
-RevokePart ::= K_GRANT | K_DENY
+GrantPrivilege ::= Privilege K_TO SymbolicNameOrStringParameterList
+DenyPrivilege ::= Privilege K_TO SymbolicNameOrStringParameterList
+RevokePrivilege ::= Privilege K_FROM SymbolicNameOrStringParameterList
 
+GrantRole ::= SymbolicNameOrStringParameterList K_TO SymbolicNameOrStringParameterList
+RevokeRole ::= SymbolicNameOrStringParameterList K_FROM SymbolicNameOrStringParameterList
+GrantRoleManagement ::= RoleManagementPrivilege K_TO SymbolicNameOrStringParameterList
+RevokeRoleManagement ::= RoleManagementPrivilege K_FROM SymbolicNameOrStringParameterList
+RoleManagementPrivilege ::= K_MANAGEMENT K_ON K_DBMS
+
+// Kept for backward compatibility (PSI stability)
 Roles ::= SymbolicNameString ("," SymbolicNameString)*
 
-PrivilegeScope ::= DatabaseScope | GraphScope
+Privilege ::= AllPrivilege
+            | CreatePrivilege
+            | DropPrivilege
+            | ShowPrivilege
+            | SetPrivilege
+            | RemovePrivilege
+            | DatabasePrivilege
+            | DbmsPrivilege
+            | WritePrivilege
+            | QualifiedGraphPrivilegesWithProperty
+            | QualifiedGraphPrivileges
 
-DatabaseScope ::= (K_DATABASE | K_DATABASES) (SymbolicNameString ("," SymbolicNameString)* | "*")
-                | K_DEFAULT K_DATABASE
+AllPrivilege ::= K_ALL AllPrivilegeType? K_ON AllPrivilegeTarget
+AllPrivilegeType ::= (K_DBMS | K_GRAPH | K_DATABASE)? K_PRIVILEGES
+AllPrivilegeTarget ::= K_DEFAULT (K_GRAPH | K_DATABASE)
+                     | K_HOME (K_GRAPH | K_DATABASE)
+                     | K_DBMS
+                     | GraphScopeList
+                     | DatabaseScopeList
 
-GraphScope ::= (K_GRAPH | K_GRAPHS) (SymbolicNameString ("," SymbolicNameString)* | "*")
-             | K_DEFAULT K_GRAPH
+// Note: "CREATE INDEX" is lexed as compound token K_CREATE_INDEX; "CREATE INDEXES" uses K_CREATE + K_INDEXES
+CreatePrivilege ::= K_CREATE_INDEX K_ON DatabaseScopeList
+                  | K_CREATE ((K_INDEXES | K_CONSTRAINT | K_CONSTRAINTS
+                               | K_NEW (K_NODE? (K_LABEL | K_LABELS) | K_RELATIONSHIP? (K_TYPE | K_TYPES) | K_PROPERTY? (K_NAME | K_NAMES))
+                               ) K_ON DatabaseScopeList
+                             | (K_DATABASE | K_ALIAS | K_ROLE | K_USER | K_COMPOSITE K_DATABASE) K_ON K_DBMS
+                             | K_ON GraphScopeList GraphQualifier?)
 
-PrivilegeType ::= DatabasePrivilege | GraphPrivilege | DbmsPrivilege
+DropPrivilege ::= K_DROP (((K_INDEX | K_INDEXES) | (K_CONSTRAINT | K_CONSTRAINTS)) K_ON DatabaseScopeList
+                         | (K_DATABASE | K_ALIAS | K_ROLE | K_USER | K_COMPOSITE K_DATABASE) K_ON K_DBMS)
 
-DatabasePrivilege ::= K_ALL K_DATABASE? K_PRIVILEGES
-                    | K_ACCESS
-                    | K_START
-                    | K_STOP
-                    | (K_CREATE | K_DROP) (K_INDEX | K_INDEXES | K_CONSTRAINT | K_CONSTRAINTS)
-                    | K_INDEX K_MANAGEMENT?
-                    | K_CONSTRAINT K_MANAGEMENT?
-                    | K_NAME K_MANAGEMENT?
+ShowPrivilege ::= K_SHOW (((K_INDEX | K_INDEXES) | (K_CONSTRAINT | K_CONSTRAINTS)
+                           | (K_TRANSACTION | K_TRANSACTIONS) ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                           ) K_ON DatabaseScopeList
+                          | (K_ALIAS | K_PRIVILEGE | K_ROLE | K_USER | (K_SERVER | K_SERVERS) | (K_SETTING | K_SETTINGS) SettingQualifier?) K_ON K_DBMS)
 
-GraphPrivilege ::= K_ALL K_GRAPH? K_PRIVILEGES
-                 | K_TRAVERSE
-                 | K_READ "{" PropertiesList "}"
-                 | K_MATCH "{" PropertiesList "}"
-                 | K_WRITE
+SetPrivilege ::= K_SET (((K_PASSWORD | K_PASSWORDS) | K_USER (K_STATUS | K_HOME K_DATABASE) | K_DATABASE K_ACCESS) K_ON K_DBMS
+                       | K_LABEL LabelResource K_ON GraphScopeList
+                       | K_PROPERTY PropertyResource K_ON GraphScopeList GraphQualifier?)
 
-DbmsPrivilege ::= K_ALL K_DBMS? K_PRIVILEGES
-                 | K_ROLE K_MANAGEMENT
-                 | K_USER K_MANAGEMENT
-                 | K_DATABASE K_MANAGEMENT
-                 | K_PRIVILEGE K_MANAGEMENT
-                 | (K_ASSIGN | K_REMOVE) (K_ROLE | K_PRIVILEGE)
-                 | K_EXECUTE (K_ADMIN | K_BOOSTED)? (K_PROCEDURE | K_PROCEDURES) PropertiesList?
-                 | K_EXECUTE (K_ADMIN | K_BOOSTED)? K_USER K_DEFINED? (K_FUNCTION | K_FUNCTIONS) PropertiesList?
+RemovePrivilege ::= K_REMOVE ((K_PRIVILEGE | K_ROLE) K_ON K_DBMS | K_LABEL LabelResource K_ON GraphScopeList)
 
+WritePrivilege ::= K_WRITE K_ON GraphScopeList
+
+DatabasePrivilege ::= (K_ACCESS | K_START | K_STOP
+                       | (K_INDEX | K_INDEXES) K_MANAGEMENT?
+                       | (K_CONSTRAINT | K_CONSTRAINTS) K_MANAGEMENT?
+                       | K_TRANSACTION K_MANAGEMENT? ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                       | K_TERMINATE (K_TRANSACTION | K_TRANSACTIONS) ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                       | K_NAME K_MANAGEMENT?) K_ON DatabaseScopeList
+
+DbmsPrivilege ::= (K_ALTER (K_USER | K_DATABASE | K_ALIAS)
+                  | K_ASSIGN (K_PRIVILEGE | K_ROLE)
+                  | K_COMPOSITE K_DATABASE K_MANAGEMENT
+                  | K_DATABASE K_MANAGEMENT
+                  | K_ALIAS K_MANAGEMENT
+                  | K_EXECUTE ExecuteQualifier
+                  | K_PRIVILEGE K_MANAGEMENT
+                  | K_RENAME (K_ROLE | K_USER)
+                  | K_SERVER K_MANAGEMENT
+                  | K_USER K_MANAGEMENT
+                  | K_IMPERSONATE ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                  ) K_ON K_DBMS
+
+// PEG order: PROCEDURE/PROCEDURES before FUNCTION/FUNCTIONS to disambiguate BOOSTED
+ExecuteQualifier ::= (K_ADMIN | K_ADMINISTRATOR)? K_BOOSTED? (K_PROCEDURE | K_PROCEDURES) Globs?
+                   | (K_ADMIN | K_ADMINISTRATOR)? K_BOOSTED? K_USER? K_DEFINED? (K_FUNCTION | K_FUNCTIONS) Globs?
+
+QualifiedGraphPrivilegesWithProperty ::= (K_TRAVERSE | K_READ PropertyResource | K_MATCH PropertyResource) K_ON GraphScopeList GraphQualifier?
+QualifiedGraphPrivileges ::= (K_DELETE | K_MERGE PropertyResource) K_ON GraphScopeList GraphQualifier?
+
+DatabaseScopeList ::= (K_DATABASE | K_DATABASES) ("*" | SymbolicAliasNameList)
+                    | K_DEFAULT K_DATABASE
+                    | K_HOME K_DATABASE
+GraphScopeList ::= (K_GRAPH | K_GRAPHS) ("*" | SymbolicAliasNameList)
+                 | K_DEFAULT K_GRAPH
+                 | K_HOME K_GRAPH
+
+// Optional: present only when RELATIONSHIP/NODE/ELEMENT qualifier follows
+GraphQualifier ::= (K_RELATIONSHIP | K_RELATIONSHIPS) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+                 | (K_NODE | K_NODES) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+                 | (K_ELEMENT | K_ELEMENTS) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+
+PropertyResource ::= "{" ("*" | SymbolicNameString ("," SymbolicNameString)*) "}"
+LabelResource ::= "*" | SymbolicNameString ("," SymbolicNameString)*
+SettingQualifier ::= Globs
+Globs ::= Glob ("," Glob)*
+Glob ::= GlobPart ("." GlobPart)*
+GlobPart ::= SymbolicNameString | "*"
+
+SymbolicAliasNameList ::= SymbolicAliasName ("," SymbolicAliasName)*
+SymbolicAliasName ::= SymbolicNameString ("." SymbolicNameString)* | Parameter
+SymbolicNameOrStringParameterList ::= SymbolicNameOrStringParameter ("," SymbolicNameOrStringParameter)*
+SymbolicNameOrStringParameter ::= SymbolicNameString | Parameter
+
+// Kept for backward compatibility (PSI stability)
 PropertiesList ::= "*" | (SymbolicNameString ("," SymbolicNameString)*)
 
 IfExists ::= K_IF_EXISTS
@@ -958,6 +1029,19 @@ ReservedWord ::= K_MATCH
                 | K_PATH
                 | K_GROUPS
                 | K_GROUP
+                // Phase H: full privilege model
+                | K_ALIAS
+                | K_COMPOSITE
+                | K_HOME
+                | K_IMMUTABLE
+                | K_IMPERSONATE
+                | K_PASSWORDS
+                | K_RENAME
+                | K_SERVERS
+                | K_SERVER
+                | K_SETTINGS
+                | K_SETTING
+                | K_TERMINATE
 
 // Used in IS label expressions — excludes K_NOT and K_NULL to avoid
 // ambiguity with IS NOT NULL / IS NULL in Expression3.
@@ -1094,6 +1178,7 @@ LabelReservedWord ::= K_MATCH
                 | K_OUTPUT
                 | K_PASSWORD
                 | K_POPULATED
+                | K_PRIVILEGE
                 | K_PRIVILEGES
                 | K_PROCEDURE
                 | K_PROCEDURES
@@ -1127,6 +1212,19 @@ LabelReservedWord ::= K_MATCH
                 | K_PATH
                 | K_GROUPS
                 | K_GROUP
+                // Phase H: full privilege model
+                | K_ALIAS
+                | K_COMPOSITE
+                | K_HOME
+                | K_IMMUTABLE
+                | K_IMPERSONATE
+                | K_PASSWORDS
+                | K_RENAME
+                | K_SERVERS
+                | K_SERVER
+                | K_SETTINGS
+                | K_SETTING
+                | K_TERMINATE
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier
