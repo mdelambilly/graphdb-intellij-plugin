@@ -189,6 +189,7 @@ K_TYPED=[Tt][Yy][Pp][Ee][Dd]
 K_TYPE=[Tt][Yy][Pp][Ee]
 K_USERS=[Uu][Ss][Ee][Rr][Ss]
 K_USER=[Uu][Ss][Ee][Rr]
+K_USE=[Uu][Ss][Ee]
 K_VERBOSE=[Vv][Ee][Rr][Bb][Oo][Ss][Ee]
 K_WRITE=[Ww][Rr][Ii][Tt][Ee]
 
@@ -365,9 +366,10 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_TYPES}                 { return K_TYPES; }
   {K_TYPED}                 { return K_TYPED; }
   {K_TYPE}                  { return K_TYPE; }
-  // USERS before USER, USING/UNWIND/UNION/UNIQUE before U-
+  // USERS before USER before USE, USING/UNWIND/UNION/UNIQUE before U-
   {K_USERS}                 { return K_USERS; }
   {K_USER}                  { return K_USER; }
+  {K_USE}                   { return K_USE; }
   // VERBOSE before VARIABLE
 
   // === Remaining keywords (no prefix conflicts) ===

@@ -78,4 +78,8 @@ public class QueryClauseParsingTest extends BaseParsingTest {
     public void testWith() {
         doTest(true);
     }
+
+    public void testUseClause() {
+        doTest(true);
+    }
 }

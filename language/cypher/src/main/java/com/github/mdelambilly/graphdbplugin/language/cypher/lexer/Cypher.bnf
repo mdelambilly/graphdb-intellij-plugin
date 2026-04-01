@@ -62,6 +62,7 @@ cypher ::= StatementItem *
 
 StatementItem ::= !<<eof>> Statement ';'? {pin=1 recoverWhile=statement_recover}
 private statement_recover::= !(';'
+                        | K_USE
                         | K_USING
                         | K_UNION
                         | K_LOAD
@@ -363,7 +364,8 @@ UpdatingClause ::= Create
                | SetClause
                | Remove
 
-ReadingClause ::= LoadCSV
+ReadingClause ::= UseClause
+              | LoadCSV
               | Start
               | Match
               | Unwind
@@ -373,6 +375,9 @@ ReadingClause ::= LoadCSV
 /*************************
  * Clauses
  */
+//-- Use clause (Neo4j 4.0+): selects target graph/database
+UseClause ::= K_USE (K_GRAPH Expression | Expression)
+
 //-- Load csv
 LoadCSV ::= K_LOAD K_CSV (K_WITH K_HEADERS)? K_FROM Expression K_AS Variable (K_FIELDTERMINATOR StringLiteral)?
 
@@ -889,6 +894,7 @@ ReservedWord ::= K_MATCH
                 | K_TYPE
                 | K_TYPED
                 | K_TYPES
+                | K_USE
                 | K_USER
                 | K_USERS
                 | K_VERBOSE
@@ -1048,6 +1054,7 @@ LabelReservedWord ::= K_MATCH
                 | K_TYPE
                 | K_TYPED
                 | K_TYPES
+                | K_USE
                 | K_USER
                 | K_USERS
                 | K_VERBOSE
