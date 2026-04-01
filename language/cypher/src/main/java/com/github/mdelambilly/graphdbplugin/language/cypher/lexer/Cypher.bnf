@@ -554,7 +554,12 @@ Skip ::= K_SKIP Expression
 Limit ::= K_LIMIT Expression
 
 //-- Call subquery
-CallSubQuery ::= K_CALL "{" Query "}" (K_IN_TRANSACTIONS (K_OF IntegerLiteral K_ROWS)?)? {pin=2}
+CallSubQuery ::= K_CALL "{" Query "}" SubqueryInTransactionsParameters? {pin=2}
+
+SubqueryInTransactionsParameters ::= K_IN_TRANSACTIONS (SubqueryInTransactionsBatchParameters | SubqueryInTransactionsErrorParameters | SubqueryInTransactionsReportParameters)*
+SubqueryInTransactionsBatchParameters ::= K_OF Expression (K_ROW | K_ROWS)
+SubqueryInTransactionsErrorParameters ::= K_ON K_ERROR (K_CONTINUE | K_BREAK | K_FAIL)
+SubqueryInTransactionsReportParameters ::= K_REPORT K_STATUS K_AS Variable
 
 //-- Call procedure
 Call ::= K_CALL ProcedureInvocation ProcedureResults?
@@ -1094,6 +1099,14 @@ ReservedWord ::= K_MATCH
                 | K_OPTION
                 | K_AT
                 | K_ALIASES
+                // Phase J: extended subquery IN TRANSACTIONS
+                | K_CONTINUE
+                | K_BREAK
+                | K_FAIL
+                | K_REPORT
+                | K_ROW
+                | K_ROWS
+                | K_ERROR
 
 // Used in IS label expressions — excludes K_NOT and K_NULL to avoid
 // ambiguity with IS NOT NULL / IS NULL in Expression3.
@@ -1298,6 +1311,14 @@ LabelReservedWord ::= K_MATCH
                 | K_OPTION
                 | K_AT
                 | K_ALIASES
+                // Phase J: extended subquery IN TRANSACTIONS
+                | K_CONTINUE
+                | K_BREAK
+                | K_FAIL
+                | K_REPORT
+                | K_ROW
+                | K_ROWS
+                | K_ERROR
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier

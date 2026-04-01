@@ -239,6 +239,14 @@ K_OPTION=[Oo][Pp][Tt][Ii][Oo][Nn]
 K_AT=[Aa][Tt]
 K_ALIASES=[Aa][Ll][Ii][Aa][Ss][Ee][Ss]
 
+// ===== New keywords (Phase J — extended subquery IN TRANSACTIONS) =====
+K_CONTINUE=[Cc][Oo][Nn][Tt][Ii][Nn][Uu][Ee]
+K_BREAK=[Bb][Rr][Ee][Aa][Kk]
+K_FAIL=[Ff][Aa][Ii][Ll]
+K_REPORT=[Rr][Ee][Pp][Oo][Rr][Tt]
+K_ROW=[Rr][Oo][Ww]
+K_ERROR=[Ee][Rr][Rr][Oo][Rr]
+
 // ===== Compound tokens (legacy, kept for backward compatibility) =====
 // These use fragments that are NOT promoted to standalone tokens.
 // The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
@@ -563,6 +571,14 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_ONLY}                  { return K_ONLY; }
   {K_ALIASES}               { return K_ALIASES; }
   {K_AT}                    { return K_AT; }
+
+  // Phase J keywords (ROWS before ROW handled by maximal munch)
+  {K_CONTINUE}              { return K_CONTINUE; }
+  {K_BREAK}                 { return K_BREAK; }
+  {K_FAIL}                  { return K_FAIL; }
+  {K_REPORT}                { return K_REPORT; }
+  {K_ROW}                   { return K_ROW; }
+  {K_ERROR}                 { return K_ERROR; }
 
   // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }

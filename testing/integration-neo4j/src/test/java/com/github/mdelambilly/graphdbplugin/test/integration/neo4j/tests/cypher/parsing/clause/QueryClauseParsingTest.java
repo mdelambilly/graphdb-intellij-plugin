@@ -67,6 +67,10 @@ public class QueryClauseParsingTest extends BaseParsingTest {
         doTest(true);
     }
 
+    public void testSubqueryTransactions() {
+        doTest(true);
+    }
+
     public void testUnion() {
         doTest(true);
     }
