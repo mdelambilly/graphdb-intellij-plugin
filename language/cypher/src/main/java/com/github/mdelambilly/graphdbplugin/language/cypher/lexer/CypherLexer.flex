@@ -135,6 +135,7 @@ K_BRIEF=[Bb][Rr][Ii][Ee][Ff]
 K_BTREE=[Bb][Tt][Rr][Ee][Ee]
 K_CATALOG=[Cc][Aa][Tt][Aa][Ll][Oo][Gg]
 K_CHANGE=[Cc][Hh][Aa][Nn][Gg][Ee]
+K_COLLECT=[Cc][Oo][Ll][Ll][Ee][Cc][Tt]
 K_CONSTRAINTS=[Cc][Oo][Nn][Ss][Tt][Rr][Aa][Ii][Nn][Tt][Ss]
 K_COPY=[Cc][Oo][Pp][Yy]
 K_CURRENT=[Cc][Uu][Rr][Rr][Ee][Nn][Tt]
@@ -454,6 +455,7 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_BTREE}                 { return K_BTREE; }
   {K_CATALOG}               { return K_CATALOG; }
   {K_CHANGE}                { return K_CHANGE; }
+  {K_COLLECT}               { return K_COLLECT; }
   {K_COPY}                  { return K_COPY; }
   {K_DBMS}                  { return K_DBMS; }
   {K_DEFAULT}               { return K_DEFAULT; }

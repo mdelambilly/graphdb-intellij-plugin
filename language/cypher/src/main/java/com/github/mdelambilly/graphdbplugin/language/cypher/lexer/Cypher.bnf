@@ -575,6 +575,11 @@ private Expression3 ::= Expression2 (
   | (K_CONTAINS  Expression2)
   | (K_IS K_NULL)
   | (K_IS K_NOT K_NULL)
+  | (K_IS K_NOT "::" CypherTypeName)
+  | (K_IS K_NOT K_TYPED CypherTypeName)
+  | (K_IS "::" CypherTypeName)
+  | (K_IS K_TYPED CypherTypeName)
+  | ("::" CypherTypeName)
 )*
 private Expression2 ::= Expression1 (PropertyLookup | LabelExpression)*
 private Expression1 ::= UnaryOperator
@@ -606,6 +611,7 @@ private Expression1 ::= UnaryOperator
               | FunctionInvocation
               | ExistentialSubQuery
               | CountSubQuery
+              | CollectExpression
               | Variable
 
 
@@ -635,15 +641,14 @@ FunctionArguments ::= "(" K_DISTINCT? Expression? ("," Expression)* ")" {
 }
 FunctionInvocationBody ::= Namespace FunctionName
 
-// Note: this deviates from the grammar defined at https://github.com/opencypher/openCypher
-// However, this conforms to the description of existential subqueries in the Neo4j docs:
-// https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#existential-subqueries
-ExistentialSubQuery ::= K_EXISTS "{" K_MATCH? PatternWithWhereClause "}"
+// Existential subquery: supports both full query form and pattern form (Neo4j 5+)
+ExistentialSubQuery ::= K_EXISTS "{" (RegularQuery | K_MATCH? PatternWithWhereClause) "}"
 
-// Note: this deviates from the grammar defined at https://github.com/opencypher/openCypher
-// However, this conforms to the description of count subqueries in the Neo4j docs:
-// https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#count-subqueries
-CountSubQuery ::= K_COUNT "{" K_MATCH? PatternWithWhereClause "}"
+// Count subquery: supports both full query form and pattern form (Neo4j 5+)
+CountSubQuery ::= K_COUNT "{" (RegularQuery | K_MATCH? PatternWithWhereClause) "}"
+
+// Collect subquery: COLLECT { query } → list (Neo4j 5+)
+CollectExpression ::= K_COLLECT "{" RegularQuery "}"
 
 CaseExpression ::= K_CASE ((CaseAlternatives+) | (Expression CaseAlternatives+))
                    (K_ELSE Expression)?
@@ -866,6 +871,7 @@ ReservedWord ::= K_MATCH
                 | K_BTREE
                 | K_CATALOG
                 | K_CHANGE
+                | K_COLLECT
                 | K_CONSTRAINTS
                 | K_COPY
                 | K_CURRENT
@@ -1029,6 +1035,7 @@ LabelReservedWord ::= K_MATCH
                 | K_BTREE
                 | K_CATALOG
                 | K_CHANGE
+                | K_COLLECT
                 | K_CONSTRAINTS
                 | K_COPY
                 | K_CURRENT

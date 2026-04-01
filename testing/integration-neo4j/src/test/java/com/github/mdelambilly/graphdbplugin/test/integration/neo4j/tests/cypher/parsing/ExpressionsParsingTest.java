@@ -46,4 +46,8 @@ public class ExpressionsParsingTest extends BaseParsingTest {
     public void testCountFunction() {
         doTest(true);
     }
+
+    public void testModernExpressions() {
+        doTest(true);
+    }
 }
