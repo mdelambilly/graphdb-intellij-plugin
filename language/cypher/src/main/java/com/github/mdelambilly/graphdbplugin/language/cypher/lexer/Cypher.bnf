@@ -182,8 +182,12 @@ private ConstraintForNode ::= K_FOR "(" Variable NodeLabel ")" K_REQUIRE Constra
 // FOR ()-[r:TYPE]-() REQUIRE r.prop IS ...
 private ConstraintForRelationship ::= K_FOR "(" ")" "-" "[" Variable RelType "]" "-" "(" ")" K_REQUIRE ConstraintRequire
 
+// Property list for constraints: single property or parenthesized comma-separated list
+// e.g. REQUIRE n.id IS KEY  or  REQUIRE (n.name, n.email) IS NODE KEY
+ConstraintPropertyList ::= PropertyExpression | "(" PropertyExpression ("," PropertyExpression)* ")"
+
 // The requirement predicate and its type annotation
-ConstraintRequire ::= PropertyExpression ConstraintPredicate
+ConstraintRequire ::= ConstraintPropertyList ConstraintPredicate
 
 private ConstraintPredicate ::= K_IS K_NODE K_KEY
                                | K_IS K_REL K_KEY
@@ -800,10 +804,22 @@ FunctionArguments ::= "(" K_DISTINCT? Expression? ("," Expression)* ")" {
 FunctionInvocationBody ::= Namespace FunctionName
 
 // Existential subquery: supports both full query form and pattern form (Neo4j 5+)
-ExistentialSubQuery ::= K_EXISTS "{" (RegularQuery | K_MATCH? PatternWithWhereClause) "}"
+//
+// Two valid forms inside {}:
+//   Pattern form:   MATCH? Pattern WHERE?   (no RETURN — e.g. EXISTS { (n)-[:K]->() })
+//   Full query form: RegularQuery            (with RETURN — e.g. EXISTS { MATCH (n) RETURN n })
+//
+// Problem with plain ordering: ReadingWithReturn has pin=1 on ReadingClause* (always matches),
+// so RegularQuery commits even on bare patterns and creates PsiError nodes when no RETURN follows.
+//
+// Fix: pattern form is tried first, but only accepted when NOT followed by K_RETURN.
+// The !K_RETURN negative lookahead ensures we fall through to RegularQuery whenever
+// a full query (with RETURN) is inside the braces.
+ExistentialSubQuery ::= K_EXISTS "{" ((K_MATCH? PatternWithWhereClause !K_RETURN) | RegularQuery) "}"
 
 // Count subquery: supports both full query form and pattern form (Neo4j 5+)
-CountSubQuery ::= K_COUNT "{" (RegularQuery | K_MATCH? PatternWithWhereClause) "}"
+// Same approach as ExistentialSubQuery.
+CountSubQuery ::= K_COUNT "{" ((K_MATCH? PatternWithWhereClause !K_RETURN) | RegularQuery) "}"
 
 // Collect subquery: COLLECT { query } → list (Neo4j 5+)
 CollectExpression ::= K_COLLECT "{" RegularQuery "}"

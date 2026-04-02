@@ -26,3 +26,6 @@ DROP CONSTRAINT myConstraint;
 
 // Drop constraint with IF EXISTS
 DROP CONSTRAINT myConstraint IF EXISTS;
+
+// Composite property list: REQUIRE (prop1, prop2) IS NODE KEY
+CREATE CONSTRAINT person_key FOR (p:Person) REQUIRE (p.name, p.email) IS NODE KEY;
