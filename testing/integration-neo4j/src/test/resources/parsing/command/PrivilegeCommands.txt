@@ -310,7 +310,7 @@ Cypher file: FILE(0,754)
           CypherSingleQueryImpl(SINGLE_QUERY)(516,516)
             CypherSinglePartQueryImpl(SINGLE_PART_QUERY)(516,516)
               CypherReadingWithReturnImpl(READING_WITH_RETURN)(516,516)
-                PsiErrorElement:<any cypher option>, <create index>, <delete>, <privilege command>, <reading clause>, <role command>, ALTER, BEGIN, CALL, COMMIT, CREATE, DROP, FOREACH, MERGE, REMOVE, RETURN, SET, SHOW, START, STOP or WITH expected, got 'CREATE'(516,516)
+                PsiErrorElement:<allocation command>, <any cypher option>, <create index>, <delete>, <privilege command>, <reading clause>, <role command>, ALTER, BEGIN, CALL, COMMIT, CREATE, DROP, ENABLE, FOREACH, MERGE, REMOVE, RENAME, RETURN, SET, SHOW, START, STOP, TERMINATE or WITH expected, got 'CREATE'(516,516)
                   <empty list>
   PsiElement(CREATE)('CREATE')(516,522)
   PsiElement(DUMMY_BLOCK)(522,568)

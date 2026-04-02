@@ -247,6 +247,12 @@ K_REPORT=[Rr][Ee][Pp][Oo][Rr][Tt]
 K_ROW=[Rr][Oo][Ww]
 K_ERROR=[Ee][Rr][Rr][Oo][Rr]
 
+// ===== New keywords (Phase K — server management and rename/terminate commands) =====
+K_ENABLE=[Ee][Nn][Aa][Bb][Ll][Ee]
+K_DRYRUN=[Dd][Rr][Yy][Rr][Uu][Nn]
+K_DEALLOCATE=[Dd][Ee][Aa][Ll][Ll][Oo][Cc][Aa][Tt][Ee]
+K_REALLOCATE=[Rr][Ee][Aa][Ll][Ll][Oo][Cc][Aa][Tt][Ee]
+
 // ===== Compound tokens (legacy, kept for backward compatibility) =====
 // These use fragments that are NOT promoted to standalone tokens.
 // The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
@@ -579,6 +585,12 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_REPORT}                { return K_REPORT; }
   {K_ROW}                   { return K_ROW; }
   {K_ERROR}                 { return K_ERROR; }
+
+  // Phase K keywords
+  {K_ENABLE}                { return K_ENABLE; }
+  {K_DRYRUN}                { return K_DRYRUN; }
+  {K_DEALLOCATE}            { return K_DEALLOCATE; }
+  {K_REALLOCATE}            { return K_REALLOCATE; }
 
   // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }

@@ -86,4 +86,8 @@ public class QueryClauseParsingTest extends BaseParsingTest {
     public void testUseClause() {
         doTest(true);
     }
+
+    public void testServerAndAdmin() {
+        doTest(true);
+    }
 }
