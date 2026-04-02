@@ -38,4 +38,40 @@ public class CommandParsingTest extends BaseParsingTest {
     public void testConstraintPropertyUniqueDrop() {
         doTest(true);
     }
+
+    public void testDatabaseCommands() {
+        doTest(true);
+    }
+
+    public void testConstraintNodeKeyCreate() {
+        doTest(true);
+    }
+
+    public void testConstraintNodeKeyDrop() {
+        doTest(true);
+    }
+
+    public void testUserCommands() {
+        doTest(true);
+    }
+
+    public void testRoleCommands() {
+        doTest(true);
+    }
+
+    public void testPrivilegeCommands() {
+        doTest(true);
+    }
+
+    public void testConstraintModern() {
+        doTest(true);
+    }
+
+    public void testShowCommands() {
+        doTest(true);
+    }
+
+    public void testDatabaseAdmin() {
+        doTest(true);
+    }
 }

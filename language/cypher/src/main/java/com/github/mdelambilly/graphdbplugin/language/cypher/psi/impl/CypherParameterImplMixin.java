@@ -18,7 +18,7 @@ public abstract class CypherParameterImplMixin
         if (this.getNewParameter() != null) {
             CypherNewParameter newParameter = this.getNewParameter();
             if (newParameter.getSymbolicNameString() != null) {
-                return newParameter.getSymbolicNameString().getUnescapedSymbolicNameString().getText();
+                return newParameter.getSymbolicNameString().getText();
             }
             if (newParameter.getUnsignedInteger() != null) {
                 return newParameter.getUnsignedInteger().getText();
@@ -28,7 +28,7 @@ public abstract class CypherParameterImplMixin
         if (this.getOldParameter() != null) {
             CypherOldParameter oldParameter = this.getOldParameter();
             if (oldParameter.getSymbolicNameString() != null) {
-                return oldParameter.getSymbolicNameString().getUnescapedSymbolicNameString().getText();
+                return oldParameter.getSymbolicNameString().getText();
             }
             if (oldParameter.getUnsignedInteger() != null) {
                 return oldParameter.getUnsignedInteger().getText();
@@ -37,5 +37,4 @@ public abstract class CypherParameterImplMixin
 
         return "graphbdb-plugin-invalid-parameter-name-should-never-happen";
     }
-
 }

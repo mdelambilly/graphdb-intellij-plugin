@@ -1,4 +1,19 @@
-MATCH ()
+MATCH (n:Person) RETURN n;
+MATCH (n:Person&Employee) RETURN n;
+MATCH (n:Person|Animal) RETURN n;
+MATCH (n:!Deleted) RETURN n;
+MATCH (n:%) RETURN n;
+MATCH (n:Person&!Intern|Animal) RETURN n;
+MATCH (n:(Person|Animal)&!Deleted) RETURN n;
+MATCH (n:Person:Employee) RETURN n;
+MATCH ()-[r:KNOWS|LIKES]->() RETURN r;
+MATCH ()-[r:KNOWS&!DEPRECATED]->() RETURN r;
+MATCH (n IS Person) RETURN n;
+MATCH (n IS Person&Employee) RETURN n;
+MATCH (n) WHERE n:Person&Employee RETURN n;
+MATCH (n) WHERE n IS Person RETURN n;
+MATCH (n) WHERE n IS NULL RETURN n;
+MATCH (n) WHERE n IS NOT NULL RETURN n;MATCH ()
 MATCH (n);
 MATCH (n), (n);
 MATCH p=(n);

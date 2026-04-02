@@ -1,3 +1,11 @@
+/**
+ * Copied and adapted from plugin
+ * <a href="https://github.com/neueda/jetbrains-plugin-graph-database-support">Graph Database Support</a>
+ * by Neueda Technologies, Ltd.
+ * Modified by Alberto Venturini, 2022
+ * Modified by Michel de Lambilly, 2026
+ */
+
 package com.github.mdelambilly.graphdbplugin.language.cypher.lexer;
 
 import com.intellij.lexer.FlexLexer;
@@ -27,6 +35,7 @@ import static com.github.mdelambilly.graphdbplugin.language.cypher.psi.CypherTyp
 EOL=\R
 WHITE_SPACE=\s+
 
+// ===== Existing keywords =====
 K_MATCH=[Mm][Aa][Tt][Cc][Hh]
 K_RETURN=[Rr][Ee][Tt][Uu][Rr][Nn]
 K_DISTINCT=[Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt]
@@ -114,15 +123,145 @@ K_ADD=[Aa][Dd][Dd]
 K_OPTIONS=[Oo][Pp][Tt][Ii][Oo][Nn][Ss]
 K_ROWS=[Rr][Oo][Ww][Ss]
 
+// ===== New keywords (Phase 1) =====
+K_ACCESS=[Aa][Cc][Cc][Ee][Ss][Ss]
+K_ACTIVE=[Aa][Cc][Tt][Ii][Vv][Ee]
+K_ADMINISTRATOR=[Aa][Dd][Mm][Ii][Nn][Ii][Ss][Tt][Rr][Aa][Tt][Oo][Rr]
+K_ADMIN=[Aa][Dd][Mm][Ii][Nn]
+K_ALTER=[Aa][Ll][Tt][Ee][Rr]
+K_ASSIGN=[Aa][Ss][Ss][Ii][Gg][Nn]
+K_BOOSTED=[Bb][Oo][Oo][Ss][Tt][Ee][Dd]
+K_BRIEF=[Bb][Rr][Ii][Ee][Ff]
+K_BTREE=[Bb][Tt][Rr][Ee][Ee]
+K_CATALOG=[Cc][Aa][Tt][Aa][Ll][Oo][Gg]
+K_CHANGE=[Cc][Hh][Aa][Nn][Gg][Ee]
+K_COLLECT=[Cc][Oo][Ll][Ll][Ee][Cc][Tt]
+K_CONSTRAINTS=[Cc][Oo][Nn][Ss][Tt][Rr][Aa][Ii][Nn][Tt][Ss]
+K_COPY=[Cc][Oo][Pp][Yy]
+K_CURRENT=[Cc][Uu][Rr][Rr][Ee][Nn][Tt]
+K_DATABASES=[Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee][Ss]
+K_DATABASE=[Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee]
+K_DBMS=[Dd][Bb][Mm][Ss]
+K_DEFAULT=[Dd][Ee][Ff][Aa][Uu][Ll][Tt]
+K_DEFINED=[Dd][Ee][Ff][Ii][Nn][Ee][Dd]
+K_DENY=[Dd][Ee][Nn][Yy]
+K_ELEMENTS=[Ee][Ll][Ee][Mm][Ee][Nn][Tt][Ss]
+K_ELEMENT=[Ee][Ll][Ee][Mm][Ee][Nn][Tt]
+K_EXECUTE=[Ee][Xx][Ee][Cc][Uu][Tt][Ee]
+K_EXIST=[Ee][Xx][Ii][Ss][Tt]
+K_FUNCTIONS=[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn][Ss]
+K_FUNCTION=[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]
+K_GRANT=[Gg][Rr][Aa][Nn][Tt]
+K_GRAPHS=[Gg][Rr][Aa][Pp][Hh][Ss]
+K_GRAPH=[Gg][Rr][Aa][Pp][Hh]
+K_IF=[Ii][Ff]
+K_INDEXES=[Ii][Nn][Dd][Ee][Xx][Ee][Ss]
+K_KEY=[Kk][Ee][Yy]
+K_LABELS=[Ll][Aa][Bb][Ee][Ll][Ss]
+K_LABEL=[Ll][Aa][Bb][Ee][Ll]
+K_MANAGEMENT=[Mm][Aa][Nn][Aa][Gg][Ee][Mm][Ee][Nn][Tt]
+K_NAMES=[Nn][Aa][Mm][Ee][Ss]
+K_NAME=[Nn][Aa][Mm][Ee]
+K_NEW=[Nn][Ee][Ww]
+K_NODES=[Nn][Oo][Dd][Ee][Ss]
+K_OUTPUT=[Oo][Uu][Tt][Pp][Uu][Tt]
+K_PASSWORD=[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]
+K_POPULATED=[Pp][Oo][Pp][Uu][Ll][Aa][Tt][Ee][Dd]
+K_PRIVILEGES=[Pp][Rr][Ii][Vv][Ii][Ll][Ee][Gg][Ee][Ss]
+K_PRIVILEGE=[Pp][Rr][Ii][Vv][Ii][Ll][Ee][Gg][Ee]
+K_PROCEDURES=[Pp][Rr][Oo][Cc][Ee][Dd][Uu][Rr][Ee][Ss]
+K_PROCEDURE=[Pp][Rr][Oo][Cc][Ee][Dd][Uu][Rr][Ee]
+K_PROPERTY=[Pp][Rr][Oo][Pp][Ee][Rr][Tt][Yy]
+K_READ=[Rr][Ee][Aa][Dd]
+K_RELATIONSHIPS=[Rr][Ee][Ll][Aa][Tt][Ii][Oo][Nn][Ss][Hh][Ii][Pp][Ss]
+K_REPLACE=[Rr][Ee][Pp][Ll][Aa][Cc][Ee]
+K_REQUIRED=[Rr][Ee][Qq][Uu][Ii][Rr][Ee][Dd]
+K_REVOKE=[Rr][Ee][Vv][Oo][Kk][Ee]
+K_ROLES=[Rr][Oo][Ll][Ee][Ss]
+K_ROLE=[Rr][Oo][Ll][Ee]
+K_SHOW=[Ss][Hh][Oo][Ww]
+K_STATUS=[Ss][Tt][Aa][Tt][Uu][Ss]
+K_STOP=[Ss][Tt][Oo][Pp]
+K_SUSPENDED=[Ss][Uu][Ss][Pp][Ee][Nn][Dd][Ee][Dd]
+K_TO=[Tt][Oo]
+K_TRAVERSE=[Tt][Rr][Aa][Vv][Ee][Rr][Ss][Ee]
+K_TYPES=[Tt][Yy][Pp][Ee][Ss]
+K_TYPED=[Tt][Yy][Pp][Ee][Dd]
+K_TYPE=[Tt][Yy][Pp][Ee]
+K_TRANSACTIONS=[Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn][Ss]
+K_TRANSACTION=[Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn]
+K_USERS=[Uu][Ss][Ee][Rr][Ss]
+K_USER=[Uu][Ss][Ee][Rr]
+K_USE=[Uu][Ss][Ee]
+K_VERBOSE=[Vv][Ee][Rr][Bb][Oo][Ss][Ee]
+K_WRITE=[Ww][Rr][Ii][Tt][Ee]
+
+// ===== New keywords (Phase G2 — GPM parenthesized paths and selectors) =====
+K_SHORTEST=[Ss][Hh][Oo][Rr][Tt][Ee][Ss][Tt]
+K_PATHS=[Pp][Aa][Tt][Hh][Ss]
+K_PATH=[Pp][Aa][Tt][Hh]
+K_GROUPS=[Gg][Rr][Oo][Uu][Pp][Ss]
+K_GROUP=[Gg][Rr][Oo][Uu][Pp]
+
+// ===== New keywords (Phase H — full privilege model) =====
+K_ALIAS=[Aa][Ll][Ii][Aa][Ss]
+K_COMPOSITE=[Cc][Oo][Mm][Pp][Oo][Ss][Ii][Tt][Ee]
+K_HOME=[Hh][Oo][Mm][Ee]
+K_IMMUTABLE=[Ii][Mm][Mm][Uu][Tt][Aa][Bb][Ll][Ee]
+K_IMPERSONATE=[Ii][Mm][Pp][Ee][Rr][Ss][Oo][Nn][Aa][Tt][Ee]
+K_PASSWORDS=[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd][Ss]
+K_RENAME=[Rr][Ee][Nn][Aa][Mm][Ee]
+K_SERVERS=[Ss][Ee][Rr][Vv][Ee][Rr][Ss]
+K_SERVER=[Ss][Ee][Rr][Vv][Ee][Rr]
+K_SETTINGS=[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]
+K_SETTING=[Ss][Ee][Tt][Tt][Ii][Nn][Gg]
+K_TERMINATE=[Tt][Ee][Rr][Mm][Ii][Nn][Aa][Tt][Ee]
+
+// ===== New keywords (Phase I — extended database admin commands) =====
+K_TOPOLOGY=[Tt][Oo][Pp][Oo][Ll][Oo][Gg][Yy]
+K_PRIMARIES=[Pp][Rr][Ii][Mm][Aa][Rr][Ii][Ee][Ss]
+K_PRIMARY=[Pp][Rr][Ii][Mm][Aa][Rr][Yy]
+K_SECONDARIES=[Ss][Ee][Cc][Oo][Nn][Dd][Aa][Rr][Ii][Ee][Ss]
+K_SECONDARY=[Ss][Ee][Cc][Oo][Nn][Dd][Aa][Rr][Yy]
+K_WAIT=[Ww][Aa][Ii][Tt]
+K_NOWAIT=[Nn][Oo][Ww][Aa][Ii][Tt]
+K_SECONDS=[Ss][Ee][Cc][Oo][Nn][Dd][Ss]
+K_SECOND=[Ss][Ee][Cc][Oo][Nn][Dd]
+K_SEC=[Ss][Ee][Cc]
+K_DUMP=[Dd][Uu][Mm][Pp]
+K_DESTROY=[Dd][Ee][Ss][Tt][Rr][Oo][Yy]
+K_DATA=[Dd][Aa][Tt][Aa]
+K_TARGET=[Tt][Aa][Rr][Gg][Ee][Tt]
+K_DRIVER=[Dd][Rr][Ii][Vv][Ee][Rr]
+K_PROPERTIES=[Pp][Rr][Oo][Pp][Ee][Rr][Tt][Ii][Ee][Ss]
+K_ONLY=[Oo][Nn][Ll][Yy]
+K_OPTION=[Oo][Pp][Tt][Ii][Oo][Nn]
+K_AT=[Aa][Tt]
+K_ALIASES=[Aa][Ll][Ii][Aa][Ss][Ee][Ss]
+
+// ===== New keywords (Phase J — extended subquery IN TRANSACTIONS) =====
+K_CONTINUE=[Cc][Oo][Nn][Tt][Ii][Nn][Uu][Ee]
+K_BREAK=[Bb][Rr][Ee][Aa][Kk]
+K_FAIL=[Ff][Aa][Ii][Ll]
+K_REPORT=[Rr][Ee][Pp][Oo][Rr][Tt]
+K_ROW=[Rr][Oo][Ww]
+K_ERROR=[Ee][Rr][Rr][Oo][Rr]
+
+// ===== New keywords (Phase K — server management and rename/terminate commands) =====
+K_ENABLE=[Ee][Nn][Aa][Bb][Ll][Ee]
+K_DRYRUN=[Dd][Rr][Yy][Rr][Uu][Nn]
+K_DEALLOCATE=[Dd][Ee][Aa][Ll][Ll][Oo][Cc][Aa][Tt][Ee]
+K_REALLOCATE=[Rr][Ee][Aa][Ll][Ll][Oo][Cc][Aa][Tt][Ee]
+
+// ===== Compound tokens (legacy, kept for backward compatibility) =====
+// These use fragments that are NOT promoted to standalone tokens.
+// The individual words (EACH, RANGE, LOOKUP, TEXT, POINT, TRANSACTIONS)
+// remain as fragments only used in compounds.
 _EACH=[Ee][Aa][Cc][Hh]
-_IF=[Ii][Ff]
 _RANGE=[Rr][Aa][Nn][Gg][Ee]
 _LOOKUP=[Ll][Oo][Oo][Kk][Uu][Pp]
 _TEXT=[Tt][Ee][Xx][Tt]
 _POINT=[Pp][Oo][Ii][Nn][Tt]
-_LABELS=[Ll][Aa][Bb][Ee][Ll][Ss]
-_TYPE=[Tt][Yy][Pp][Ee]
-_IN=[Ii][Nn]
 _TRANSACTIONS=[Tt][Rr][Aa][Nn][Ss][Aa][Cc][Tt][Ii][Oo][Nn][Ss]
 
 K_CREATE_INDEX={K_CREATE}{WHITE_SPACE}{K_INDEX}
@@ -130,13 +269,14 @@ K_CREATE_RANGE_INDEX={K_CREATE}{WHITE_SPACE}{_RANGE}{WHITE_SPACE}{K_INDEX}
 K_CREATE_LOOKUP_INDEX={K_CREATE}{WHITE_SPACE}{_LOOKUP}{WHITE_SPACE}{K_INDEX}
 K_CREATE_TEXT_INDEX={K_CREATE}{WHITE_SPACE}{_TEXT}{WHITE_SPACE}{K_INDEX}
 K_CREATE_POINT_INDEX={K_CREATE}{WHITE_SPACE}{_POINT}{WHITE_SPACE}{K_INDEX}
-K_IF_EXISTS={_IF}{WHITE_SPACE}{K_EXISTS}
-K_IF_NOT_EXISTS={_IF}{WHITE_SPACE}{K_NOT}{WHITE_SPACE}{K_EXISTS}
-K_ON_EACH_LABELS={K_ON}{WHITE_SPACE}{_EACH}{WHITE_SPACE}{_LABELS}
-K_ON_EACH_TYPE={K_ON}{WHITE_SPACE}{_EACH}{WHITE_SPACE}{_TYPE}
-K_ON_TYPE={K_ON}{WHITE_SPACE}{_TYPE}
-K_IN_TRANSACTIONS={_IN}{WHITE_SPACE}{_TRANSACTIONS}
+K_IF_EXISTS={K_IF}{WHITE_SPACE}{K_EXISTS}
+K_IF_NOT_EXISTS={K_IF}{WHITE_SPACE}{K_NOT}{WHITE_SPACE}{K_EXISTS}
+K_ON_EACH_LABELS={K_ON}{WHITE_SPACE}{_EACH}{WHITE_SPACE}{K_LABELS}
+K_ON_EACH_TYPE={K_ON}{WHITE_SPACE}{_EACH}{WHITE_SPACE}{K_TYPE}
+K_ON_TYPE={K_ON}{WHITE_SPACE}{K_TYPE}
+K_IN_TRANSACTIONS={K_IN}{WHITE_SPACE}{_TRANSACTIONS}
 
+// ===== Literals =====
 _DECIMAL_EXPONENT=[eE] [+-]? {_INTEGER_PART}+ {_PART_LETTER}*
 _INTEGER_PART= "_"? [0-9]
 
@@ -171,6 +311,7 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   "["                       { return BRACKET_SQUAREOPEN; }
   "]"                       { return BRACKET_SQUARECLOSE; }
   "$"                       { return DOLLAR; }
+  "::"                      { return OP_COLONCOLON; }
   ":"                       { return OP_COLON; }
   "."                       { return OP_DOT; }
   "="                       { return OP_EQUAL; }
@@ -187,16 +328,117 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   "+="                      { return OP_PLUSEQUALS; }
   "<>"                      { return OP_INVALIDNOTEQUALS; }
   "!="                      { return OP_NOTEQUALS; }
+  "!"                       { return OP_EXCLAMATION; }
   "<="                      { return OP_LESSTHANEQUALS; }
   ">="                      { return OP_GREATERTHANEQUALS; }
   "/"                       { return OP_DIVIDE; }
   "%"                       { return OP_MODULO; }
   "^"                       { return OP_POW; }
+  "&"                       { return OP_AMPERSAND; }
   "=~"                      { return OP_REGEXMATCH; }
 
+  // === Compound tokens FIRST (longest match) ===
+  {K_CREATE_RANGE_INDEX}    { return K_CREATE_RANGE_INDEX; }
+  {K_CREATE_LOOKUP_INDEX}   { return K_CREATE_LOOKUP_INDEX; }
+  {K_CREATE_TEXT_INDEX}     { return K_CREATE_TEXT_INDEX; }
+  {K_CREATE_POINT_INDEX}    { return K_CREATE_POINT_INDEX; }
+  {K_CREATE_INDEX}          { return K_CREATE_INDEX; }
+  {K_IF_NOT_EXISTS}         { return K_IF_NOT_EXISTS; }
+  {K_IF_EXISTS}             { return K_IF_EXISTS; }
+  {K_ON_EACH_LABELS}        { return K_ON_EACH_LABELS; }
+  {K_ON_EACH_TYPE}          { return K_ON_EACH_TYPE; }
+  {K_ON_TYPE}               { return K_ON_TYPE; }
+  {K_IN_TRANSACTIONS}       { return K_IN_TRANSACTIONS; }
+
+  // === Keywords: longest first within prefix groups ===
+  // ALLSHORTESTPATHS before ALL
+  {K_ALLSHORTESTPATHS}      { return K_ALLSHORTESTPATHS; }
+  // ADMINISTRATOR before ADMIN
+  {K_ADMINISTRATOR}         { return K_ADMINISTRATOR; }
+  // ASCENDING before ASC, ASSERT before AS
+  {K_ASCENDING}             { return K_ASCENDING; }
+  {K_ASSIGN}                { return K_ASSIGN; }
+  {K_ASSERT}                { return K_ASSERT; }
+  {K_ASC}                   { return K_ASC; }
+  {K_AS}                    { return K_AS; }
+  // CONSTRAINTS before CONSTRAINT, CONTAINS before COMMIT/COUNT/COPY
+  {K_CONSTRAINTS}           { return K_CONSTRAINTS; }
+  {K_CONSTRAINT}            { return K_CONSTRAINT; }
+  {K_CONTAINS}              { return K_CONTAINS; }
+  {K_CURRENT}               { return K_CURRENT; }
+  // DATABASES before DATABASE
+  {K_DATABASES}             { return K_DATABASES; }
+  {K_DATABASE}              { return K_DATABASE; }
+  // DESCENDING before DESC, DETACH before DELETE/DEFAULT/DEFINED/DENY
+  {K_DESCENDING}            { return K_DESCENDING; }
+  {K_DISTINCT}              { return K_DISTINCT; }
+  // ELEMENTS before ELEMENT
+  {K_ELEMENTS}              { return K_ELEMENTS; }
+  {K_ELEMENT}               { return K_ELEMENT; }
+  // EXISTS before EXIST, EXTRACT/EXPLAIN/EXECUTE before EX-
+  {K_EXTRACT}               { return K_EXTRACT; }
+  {K_EXPLAIN}               { return K_EXPLAIN; }
+  {K_EXECUTE}               { return K_EXECUTE; }
+  {K_EXISTS}                { return K_EXISTS; }
+  {K_EXIST}                 { return K_EXIST; }
+  // FOREACH before FOR, FUNCTIONS before FUNCTION, FIELDTERMINATOR/FILTER/FALSE
+  {K_FOREACH}               { return K_FOREACH; }
+  {K_FIELDTERMINATOR}       { return K_FIELDTERMINATOR; }
+  {K_FUNCTIONS}             { return K_FUNCTIONS; }
+  {K_FUNCTION}              { return K_FUNCTION; }
+  // GRAPHS before GRAPH, GRANT
+  {K_GRAPHS}                { return K_GRAPHS; }
+  {K_GRAPH}                 { return K_GRAPH; }
+  // INDEXES before INDEX
+  {K_INDEXES}               { return K_INDEXES; }
+  // LABELS before LABEL
+  {K_LABELS}                { return K_LABELS; }
+  {K_LABEL}                 { return K_LABEL; }
+  // MANAGEMENT before MANDATORY/MATCH/MERGE
+  {K_MANAGEMENT}            { return K_MANAGEMENT; }
+  {K_MANDATORY}             { return K_MANDATORY; }
+  // NAMES before NAME, NODES before NODE, NONE before NOT
+  {K_NAMES}                 { return K_NAMES; }
+  {K_NAME}                  { return K_NAME; }
+  {K_NODES}                 { return K_NODES; }
+  // OPTIONAL/OPTIONS before OR/ORDER/OUTPUT
+  {K_OPTIONAL}              { return K_OPTIONAL; }
+  {K_OPTIONS}               { return K_OPTIONS; }
+  {K_OPTION}                { return K_OPTION; }
+  // PASSWORD, POPULATED, PRIVILEGES before PROCEDURE/PROCEDURES/PROFILE/PROPERTY
+  {K_POPULATED}             { return K_POPULATED; }
+  {K_PRIVILEGES}            { return K_PRIVILEGES; }
+  {K_PRIVILEGE}             { return K_PRIVILEGE; }
+  {K_PROCEDURES}            { return K_PROCEDURES; }
+  {K_PROCEDURE}             { return K_PROCEDURE; }
+  // RELATIONSHIPS before RELATIONSHIP, REPLACE/REQUIRED/REVOKE/REMOVE/RETURN/REDUCE before RE-
+  {K_RELATIONSHIPS}         { return K_RELATIONSHIPS; }
+  {K_RELATIONSHIP}          { return K_RELATIONSHIP; }
+  {K_REQUIRED}              { return K_REQUIRED; }
+  {K_REPLACE}               { return K_REPLACE; }
+  // ROLES before ROLE
+  {K_ROLES}                 { return K_ROLES; }
+  {K_ROLE}                  { return K_ROLE; }
+  // SHORTESTPATH before SHOW/SINGLE/SKIP/STATUS/STOP/STARTS/SUSPENDED
+  {K_SHORTESTPATH}          { return K_SHORTESTPATH; }
+  {K_SUSPENDED}             { return K_SUSPENDED; }
+  {K_STARTS}                { return K_STARTS; }
+  // TRANSACTIONS before TRANSACTION; TRAVERSE/TRUE/TYPES/TYPED before TYPE/THEN/TO
+  {K_TRANSACTIONS}          { return K_TRANSACTIONS; }
+  {K_TRANSACTION}           { return K_TRANSACTION; }
+  {K_TRAVERSE}              { return K_TRAVERSE; }
+  {K_TYPES}                 { return K_TYPES; }
+  {K_TYPED}                 { return K_TYPED; }
+  {K_TYPE}                  { return K_TYPE; }
+  // USERS before USER before USE, USING/UNWIND/UNION/UNIQUE before U-
+  {K_USERS}                 { return K_USERS; }
+  {K_USER}                  { return K_USER; }
+  {K_USE}                   { return K_USE; }
+  // VERBOSE before VARIABLE
+
+  // === Remaining keywords (no prefix conflicts) ===
   {K_MATCH}                 { return K_MATCH; }
   {K_RETURN}                { return K_RETURN; }
-  {K_DISTINCT}              { return K_DISTINCT; }
   {K_UNION}                 { return K_UNION; }
   {K_ALL}                   { return K_ALL; }
   {K_LOAD}                  { return K_LOAD; }
@@ -204,42 +446,29 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_WITH}                  { return K_WITH; }
   {K_HEADERS}               { return K_HEADERS; }
   {K_FROM}                  { return K_FROM; }
-  {K_AS}                    { return K_AS; }
-  {K_FIELDTERMINATOR}       { return K_FIELDTERMINATOR; }
   {K_CREATE}                { return K_CREATE; }
-  {K_CONSTRAINT}            { return K_CONSTRAINT; }
   {K_ON}                    { return K_ON; }
-  {K_ASSERT}                { return K_ASSERT; }
   {K_IS}                    { return K_IS; }
   {K_UNIQUE}                { return K_UNIQUE; }
-  {K_EXISTS}                { return K_EXISTS; }
   {K_INDEX}                 { return K_INDEX; }
   {K_DROP}                  { return K_DROP; }
   {K_START}                 { return K_START; }
   {K_WHERE}                 { return K_WHERE; }
   {K_NODE}                  { return K_NODE; }
-  {K_RELATIONSHIP}          { return K_RELATIONSHIP; }
   {K_REL}                   { return K_REL; }
-  {K_OPTIONAL}              { return K_OPTIONAL; }
   {K_USING}                 { return K_USING; }
   {K_JOIN}                  { return K_JOIN; }
   {K_SCAN}                  { return K_SCAN; }
-  {K_SHORTESTPATH}          { return K_SHORTESTPATH; }
-  {K_ALLSHORTESTPATHS}      { return K_ALLSHORTESTPATHS; }
   {K_UNWIND}                { return K_UNWIND; }
   {K_MERGE}                 { return K_MERGE; }
   {K_SET}                   { return K_SET; }
   {K_DELETE}                { return K_DELETE; }
   {K_DETACH}                { return K_DETACH; }
   {K_REMOVE}                { return K_REMOVE; }
-  {K_FOREACH}               { return K_FOREACH; }
   {K_IN}                    { return K_IN; }
   {K_ORDER}                 { return K_ORDER; }
   {K_BY}                    { return K_BY; }
-  {K_DESCENDING}            { return K_DESCENDING; }
   {K_DESC}                  { return K_DESC; }
-  {K_ASCENDING}             { return K_ASCENDING; }
-  {K_ASC}                   { return K_ASC; }
   {K_SKIP}                  { return K_SKIP; }
   {K_LIMIT}                 { return K_LIMIT; }
   {K_BEGIN}                 { return K_BEGIN; }
@@ -248,14 +477,11 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_OR}                    { return K_OR; }
   {K_AND}                   { return K_AND; }
   {K_NOT}                   { return K_NOT; }
-  {K_STARTS}                { return K_STARTS; }
   {K_ENDS}                  { return K_ENDS; }
-  {K_CONTAINS}              { return K_CONTAINS; }
   {K_NULL}                  { return K_NULL; }
   {K_TRUE}                  { return K_TRUE; }
   {K_FALSE}                 { return K_FALSE; }
   {K_FILTER}                { return K_FILTER; }
-  {K_EXTRACT}               { return K_EXTRACT; }
   {K_REDUCE}                { return K_REDUCE; }
   {K_ANY}                   { return K_ANY; }
   {K_NONE}                  { return K_NONE; }
@@ -266,7 +492,6 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_WHEN}                  { return K_WHEN; }
   {K_THEN}                  { return K_THEN; }
   {K_PROFILE}               { return K_PROFILE; }
-  {K_EXPLAIN}               { return K_EXPLAIN; }
   {K_CYPHER}                { return K_CYPHER; }
   {K_CALL}                  { return K_CALL; }
   {K_YIELD}                 { return K_YIELD; }
@@ -274,26 +499,100 @@ BLOCK_COMMENT = "/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
   {K_DO}                    { return K_DO; }
   {K_FOR}                   { return K_FOR; }
   {K_REQUIRE}               { return K_REQUIRE; }
-  {K_MANDATORY}             { return K_MANDATORY; }
   {K_SCALAR}                { return K_SCALAR; }
   {K_OF}                    { return K_OF; }
   {K_ADD}                   { return K_ADD; }
-
-  {K_OPTIONS}               { return K_OPTIONS; }
   {K_ROWS}                  { return K_ROWS; }
 
-  {K_CREATE_INDEX}          { return K_CREATE_INDEX; }
-  {K_CREATE_RANGE_INDEX}    { return K_CREATE_RANGE_INDEX; }
-  {K_CREATE_LOOKUP_INDEX}   { return K_CREATE_LOOKUP_INDEX; }
-  {K_CREATE_TEXT_INDEX}     { return K_CREATE_TEXT_INDEX; }
-  {K_CREATE_POINT_INDEX}    { return K_CREATE_POINT_INDEX; }
-  {K_IF_EXISTS}             { return K_IF_EXISTS; }
-  {K_IF_NOT_EXISTS}         { return K_IF_NOT_EXISTS; }
-  {K_ON_EACH_LABELS}        { return K_ON_EACH_LABELS; }
-  {K_ON_EACH_TYPE}          { return K_ON_EACH_TYPE; }
-  {K_ON_TYPE}               { return K_ON_TYPE; }
-  {K_IN_TRANSACTIONS}       { return K_IN_TRANSACTIONS; }
+  // New keywords (no prefix conflicts)
+  {K_ACCESS}                { return K_ACCESS; }
+  {K_ACTIVE}                { return K_ACTIVE; }
+  {K_ADMIN}                 { return K_ADMIN; }
+  {K_ALTER}                 { return K_ALTER; }
+  {K_BOOSTED}               { return K_BOOSTED; }
+  {K_BRIEF}                 { return K_BRIEF; }
+  {K_BTREE}                 { return K_BTREE; }
+  {K_CATALOG}               { return K_CATALOG; }
+  {K_CHANGE}                { return K_CHANGE; }
+  {K_COLLECT}               { return K_COLLECT; }
+  {K_COPY}                  { return K_COPY; }
+  {K_DBMS}                  { return K_DBMS; }
+  {K_DEFAULT}               { return K_DEFAULT; }
+  {K_DEFINED}               { return K_DEFINED; }
+  {K_DENY}                  { return K_DENY; }
+  {K_GRANT}                 { return K_GRANT; }
+  {K_IF}                    { return K_IF; }
+  {K_KEY}                   { return K_KEY; }
+  {K_NEW}                   { return K_NEW; }
+  {K_OUTPUT}                { return K_OUTPUT; }
+  {K_PASSWORD}              { return K_PASSWORD; }
+  {K_PROPERTY}              { return K_PROPERTY; }
+  {K_READ}                  { return K_READ; }
+  {K_REVOKE}                { return K_REVOKE; }
+  {K_SHOW}                  { return K_SHOW; }
+  {K_STATUS}                { return K_STATUS; }
+  {K_STOP}                  { return K_STOP; }
+  {K_TO}                    { return K_TO; }
+  {K_VERBOSE}               { return K_VERBOSE; }
+  {K_WRITE}                 { return K_WRITE; }
 
+  // Phase G2 keywords (PATHS/GROUPS before PATH/GROUP for clarity)
+  {K_PATHS}                 { return K_PATHS; }
+  {K_PATH}                  { return K_PATH; }
+  {K_GROUPS}                { return K_GROUPS; }
+  {K_GROUP}                 { return K_GROUP; }
+  {K_SHORTEST}              { return K_SHORTEST; }
+
+  // Phase H keywords (SERVERS before SERVER, PASSWORDS before PASSWORD handled by maximal munch)
+  {K_SERVERS}               { return K_SERVERS; }
+  {K_SERVER}                { return K_SERVER; }
+  {K_SETTINGS}              { return K_SETTINGS; }
+  {K_SETTING}               { return K_SETTING; }
+  {K_PASSWORDS}             { return K_PASSWORDS; }
+  {K_ALIAS}                 { return K_ALIAS; }
+  {K_COMPOSITE}             { return K_COMPOSITE; }
+  {K_HOME}                  { return K_HOME; }
+  {K_IMMUTABLE}             { return K_IMMUTABLE; }
+  {K_IMPERSONATE}           { return K_IMPERSONATE; }
+  {K_RENAME}                { return K_RENAME; }
+  {K_TERMINATE}             { return K_TERMINATE; }
+
+  // Phase I keywords (PRIMARIES before PRIMARY, SECONDARIES before SECONDARY, SECONDS before SECOND before SEC, ALIASES before ALIAS, PROPERTIES before PROPERTY handled by maximal munch)
+  {K_TOPOLOGY}              { return K_TOPOLOGY; }
+  {K_PRIMARIES}             { return K_PRIMARIES; }
+  {K_PRIMARY}               { return K_PRIMARY; }
+  {K_SECONDARIES}           { return K_SECONDARIES; }
+  {K_SECONDARY}             { return K_SECONDARY; }
+  {K_WAIT}                  { return K_WAIT; }
+  {K_NOWAIT}                { return K_NOWAIT; }
+  {K_SECONDS}               { return K_SECONDS; }
+  {K_SECOND}                { return K_SECOND; }
+  {K_SEC}                   { return K_SEC; }
+  {K_DUMP}                  { return K_DUMP; }
+  {K_DESTROY}               { return K_DESTROY; }
+  {K_DATA}                  { return K_DATA; }
+  {K_TARGET}                { return K_TARGET; }
+  {K_DRIVER}                { return K_DRIVER; }
+  {K_PROPERTIES}            { return K_PROPERTIES; }
+  {K_ONLY}                  { return K_ONLY; }
+  {K_ALIASES}               { return K_ALIASES; }
+  {K_AT}                    { return K_AT; }
+
+  // Phase J keywords (ROWS before ROW handled by maximal munch)
+  {K_CONTINUE}              { return K_CONTINUE; }
+  {K_BREAK}                 { return K_BREAK; }
+  {K_FAIL}                  { return K_FAIL; }
+  {K_REPORT}                { return K_REPORT; }
+  {K_ROW}                   { return K_ROW; }
+  {K_ERROR}                 { return K_ERROR; }
+
+  // Phase K keywords
+  {K_ENABLE}                { return K_ENABLE; }
+  {K_DRYRUN}                { return K_DRYRUN; }
+  {K_DEALLOCATE}            { return K_DEALLOCATE; }
+  {K_REALLOCATE}            { return K_REALLOCATE; }
+
+  // === Identifiers and literals (must come AFTER all keywords) ===
   {L_IDENTIFIER}            { return L_IDENTIFIER; }
   {L_IDENTIFIER_TEXT}       { return L_IDENTIFIER_TEXT; }
   {L_DECIMAL}               { return L_DECIMAL; }

@@ -3,6 +3,7 @@
  * <a href="https://github.com/neueda/jetbrains-plugin-graph-database-support">Graph Database Support</a>
  * by Neueda Technologies, Ltd.
  * Modified by Alberto Venturini, 2022
+ * Modified by Michel de Lambilly, 2026
  */
 {
   parserClass="com.github.mdelambilly.graphdbplugin.language.cypher.CypherParser"
@@ -51,6 +52,9 @@
     op_modulo="%"
     op_pow="^"
     op_regexMatch="=~"
+    op_ampersand="&"
+    op_exclamation="!"
+    op_coloncolon="::"
   ]
 }
 
@@ -58,6 +62,7 @@ cypher ::= StatementItem *
 
 StatementItem ::= !<<eof>> Statement ';'? {pin=1 recoverWhile=statement_recover}
 private statement_recover::= !(';'
+                        | K_USE
                         | K_USING
                         | K_UNION
                         | K_LOAD
@@ -84,19 +89,30 @@ private statement_recover::= !(';'
                         | K_PROFILE
                         | K_EXPLAIN
                         | K_CALL
-                        | K_OPTIONAL
-                        | K_DETACH
+                        | K_OPTIONAL| K_DETACH
+                        | K_SHOW
+                        | K_STOP
+                        | K_ALTER
+                        | K_GRANT
+                        | K_DENY
+                        | K_REVOKE
+                        | K_ENABLE
+                        | K_TERMINATE
+                        | K_RENAME
+                        | K_DRYRUN
+                        | K_DEALLOCATE
+                        | K_REALLOCATE
                         | "}")
 
 /*************************
  * Statement
  */
-Statement ::= (K_BEGIN) | (K_COMMIT) | (QueryOptions? (Command | Query))
+Statement ::= (K_BEGIN) | (K_COMMIT) | SystemCommand | (QueryOptions? (Command | Query))
 
 /*************************
  * Statement options
  */
-QueryOptions ::= AnyCypherOption* ;
+QueryOptions ::= AnyCypherOption*
 AnyCypherOption ::= CypherOption | Explain | Profile;
 CypherOption ::= K_CYPHER VersionNumber? ConfigurationOption*
 VersionNumber ::= DoubleLiteral
@@ -111,10 +127,14 @@ Command ::= CreateIndex
           | DropIndex
           | CreateUniqueConstraint
           | DropUniqueConstraint
+          | CreateNodeKeyConstraint
+          | DropNodeKeyConstraint
           | CreateNodePropertyExistenceConstraint
           | DropNodePropertyExistenceConstraint
           | CreateRelationshipPropertyExistenceConstraint
           | DropRelationshipPropertyExistenceConstraint
+          | CreateConstraint
+          | DropConstraint
 
 CreateUniqueConstraint ::= K_CREATE UniqueConstraintSyntax
 DropUniqueConstraint ::= K_DROP UniqueConstraintSyntax
@@ -130,6 +150,312 @@ RelationshipPropertyExistenceConstraintSyntax ::= K_CONSTRAINT K_ON Relationship
 RelationshipPatternSyntax ::= ("(" ")" "-" "[" Variable RelType "]" "-" "(" ")")
       | ("(" ")" "-" "[" Variable RelType "]" "-" ">" "(" ")")
       | ("(" ")" "<" "-" "[" Variable RelType "]" "-" "(" ")")
+CreateNodeKeyConstraint ::= K_CREATE NodeKeyConstraintSyntax
+DropNodeKeyConstraint ::= K_DROP NodeKeyConstraintSyntax
+NodeKeyConstraintSyntax ::= K_CONSTRAINT K_ON "(" Variable NodeLabel ")" K_ASSERT "(" PropertyExpression ("," PropertyExpression)* ")" K_IS K_NODE K_KEY
+
+/*************************
+ * Modern Constraint Syntax (Neo4j 4.4+)
+ *
+ * Supports named/unnamed constraints, IF NOT EXISTS, FOR/REQUIRE patterns,
+ * and all predicate kinds: IS UNIQUE, IS KEY, IS NODE KEY, IS REL KEY,
+ * IS NOT NULL, IS TYPED <type>, IS :: <type>.
+ *
+ * Legacy ASSERT-based rules above are kept for backward compatibility.
+ * New rules are listed AFTER legacy rules in Command so legacy syntax
+ * takes priority during PEG matching.
+ */
+
+// CREATE [OR REPLACE] CONSTRAINT [name] [IF NOT EXISTS] FOR (...) REQUIRE ...
+// ConstraintName uses a negative lookahead to avoid consuming FOR or IF NOT EXISTS
+// as a constraint name when the name is omitted.
+CreateConstraint ::= K_CREATE OrReplace? K_CONSTRAINT ConstraintName? IfNotExists?
+                     ConstraintBody {pin=3}
+
+ConstraintName ::= !(K_FOR | K_IF_NOT_EXISTS) SymbolicNameString
+
+private ConstraintBody ::= ConstraintForNode | ConstraintForRelationship
+
+// FOR (n:Label) REQUIRE n.prop IS ...
+private ConstraintForNode ::= K_FOR "(" Variable NodeLabel ")" K_REQUIRE ConstraintRequire
+
+// FOR ()-[r:TYPE]-() REQUIRE r.prop IS ...
+private ConstraintForRelationship ::= K_FOR "(" ")" "-" "[" Variable RelType "]" "-" "(" ")" K_REQUIRE ConstraintRequire
+
+// Property list for constraints: single property or parenthesized comma-separated list
+// e.g. REQUIRE n.id IS KEY  or  REQUIRE (n.name, n.email) IS NODE KEY
+ConstraintPropertyList ::= PropertyExpression | "(" PropertyExpression ("," PropertyExpression)* ")"
+
+// The requirement predicate and its type annotation
+ConstraintRequire ::= ConstraintPropertyList ConstraintPredicate
+
+private ConstraintPredicate ::= K_IS K_NODE K_KEY
+                               | K_IS K_REL K_KEY
+                               | K_IS K_UNIQUE
+                               | K_IS K_KEY
+                               | K_IS K_NOT K_NULL
+                               | K_IS K_TYPED CypherTypeName
+                               | K_IS "::" CypherTypeName
+
+// Property type name for IS TYPED / IS :: constraints.
+// Handles: BOOLEAN, STRING, INTEGER, LIST<STRING>, etc. (via SymbolicNameString)
+// Optionally followed by NOT NULL to indicate a non-nullable type.
+CypherTypeName ::= SymbolicNameString ("<" SymbolicNameString ">")? (K_NOT K_NULL)?
+
+// DROP CONSTRAINT name [IF EXISTS]
+DropConstraint ::= K_DROP K_CONSTRAINT ConstraintName IfExists? {pin=2}
+
+/*************************
+ * System Commands
+ */
+SystemCommand ::= ShowCommand
+               | MultidatabaseCommand
+               | UserCommand
+               | RoleCommand
+               | PrivilegeCommand
+               | AllocationCommand
+               | TerminateCommand
+               | RenameCommand
+
+ShowCommand ::= K_SHOW ShowBody {pin=1}
+
+private ShowBody ::= ShowDatabase ShowTail?
+                   | ShowIndexes ShowTail?
+                   | ShowConstraints ShowTail?
+                   | ShowProcedures ShowTail?
+                   | ShowFunctions ShowTail?
+                   | ShowCurrentUser ShowTail?
+                   | ShowTransactions ShowTail?
+                   | ShowUsers ShowTail?
+                   | ShowRoles ShowTail?
+                   | ShowPrivileges ShowTail?
+                   | ShowAliases ShowTail?
+                   | ShowServers ShowTail?
+
+private ShowTail ::= YieldClause Return? | Where
+
+MultidatabaseCommand ::= CreateCompositeDatabase
+                       | CreateDatabase
+                       | CreateAlias
+                       | AlterDatabase
+                       | AlterAlias
+                       | AlterServer
+                       | DropDatabase
+                       | DropAlias
+                       | DropServer
+                       | StartDatabase
+                       | StopDatabase
+                       | EnableServerCommand
+
+ShowDatabase ::= K_DATABASES | (K_DEFAULT K_DATABASE) | (K_DATABASE SymbolicNameString)
+CreateCompositeDatabase ::= K_CREATE K_COMPOSITE K_DATABASE SymbolicAliasName IfNotExists? Options? WaitClause? {pin=3}
+CreateDatabase ::= K_CREATE OrReplace? K_DATABASE SymbolicAliasName IfNotExists?
+                   (K_TOPOLOGY (UnsignedInteger (K_PRIMARY | K_PRIMARIES | K_SECONDARY | K_SECONDARIES))+)?
+                   Options? WaitClause? {pin=3}
+DropDatabase ::= K_DROP K_COMPOSITE? K_DATABASE SymbolicAliasName IfExists? ((K_DUMP | K_DESTROY) K_DATA)? WaitClause? {pin=3}
+StartDatabase ::= K_START K_DATABASE SymbolicAliasName WaitClause? {pin=2}
+StopDatabase ::= K_STOP K_DATABASE SymbolicAliasName WaitClause? {pin=2}
+AlterDatabase ::= K_ALTER K_DATABASE SymbolicAliasName IfExists?
+                  ((K_SET AlterDatabaseOption)+ | (K_REMOVE K_OPTION SymbolicNameString)+)
+                  WaitClause? {pin=2}
+private AlterDatabaseOption ::= K_ACCESS K_READ (K_ONLY | K_WRITE)
+                               | K_TOPOLOGY (UnsignedInteger (K_PRIMARY | K_PRIMARIES | K_SECONDARY | K_SECONDARIES))+
+                               | K_OPTION SymbolicNameString Expression
+WaitClause ::= K_WAIT (UnsignedInteger (K_SEC | K_SECOND | K_SECONDS)?)? | K_NOWAIT
+Options ::= K_OPTIONS (MapLiteral | Parameter)
+StringOrParameter ::= StringLiteral | Parameter
+PasswordExpression ::= StringLiteral | Parameter
+CreateAlias ::= K_CREATE K_ALIAS SymbolicAliasName IfNotExists? K_FOR K_DATABASE SymbolicAliasName
+                (K_AT StringOrParameter K_USER SymbolicNameOrStringParameter K_PASSWORD PasswordExpression (K_DRIVER (MapLiteral | Parameter))?)?
+                (K_PROPERTIES (MapLiteral | Parameter))? {pin=2}
+DropAlias ::= K_DROP K_ALIAS SymbolicAliasName IfExists? K_FOR K_DATABASE {pin=2}
+AlterAlias ::= K_ALTER K_ALIAS SymbolicAliasName IfExists? K_SET K_DATABASE AlterAliasOption+ {pin=2}
+private AlterAliasOption ::= K_TARGET SymbolicAliasName (K_AT StringOrParameter)?
+                            | K_USER SymbolicNameOrStringParameter
+                            | K_PASSWORD PasswordExpression
+                            | K_DRIVER (MapLiteral | Parameter)
+                            | K_PROPERTIES (MapLiteral | Parameter)
+
+UserCommand ::= CreateUser
+              | DropUser
+              | AlterUser
+
+ShowUsers ::= K_USERS
+CreateUser ::= K_CREATE OrReplace? K_USER SymbolicNameString IfNotExists? SetPassword SetStatus? {pin=3}
+DropUser ::= K_DROP K_USER SymbolicNameString IfExists? {pin=2}
+AlterUser ::= K_ALTER K_CURRENT? K_USER SymbolicNameString? (SetPassword | SetStatus)+ {pin=3}
+
+SetPassword ::= K_SET K_PASSWORD (StringLiteral | Parameter) PasswordStatus?
+SetStatus ::= K_SET K_STATUS UserStatus
+UserStatus ::= K_ACTIVE | K_SUSPENDED
+PasswordStatus ::= K_CHANGE (K_NOT)? K_REQUIRED
+
+RoleCommand ::= CreateRole
+              | DropRole
+
+ShowRoles ::= K_ALL K_ROLES (K_WITH K_USERS)?
+            | K_POPULATED K_ROLES (K_WITH K_USERS)?
+            | K_ROLES (K_WITH K_USERS)?
+CreateRole ::= K_CREATE OrReplace? K_ROLE SymbolicNameString IfNotExists? (K_AS K_COPY K_OF SymbolicNameString)? {pin=3}
+DropRole ::= K_DROP K_ROLE SymbolicNameString IfExists? {pin=2}
+
+PrivilegeCommand ::= GrantCommand
+                   | DenyCommand
+                   | RevokeCommand
+
+ShowPrivileges ::= K_ALL K_PRIVILEGES
+                 | K_ROLE SymbolicNameString K_PRIVILEGES
+                 | K_USER SymbolicNameString? K_PRIVILEGES
+
+ShowIndexes ::= K_INDEXES | K_INDEX
+ShowConstraints ::= K_CONSTRAINTS | K_CONSTRAINT
+ShowProcedures ::= K_PROCEDURES | K_PROCEDURE
+ShowFunctions ::= K_FUNCTIONS | K_FUNCTION
+ShowCurrentUser ::= K_CURRENT K_USER
+ShowTransactions ::= K_TRANSACTIONS | K_TRANSACTION
+ShowAliases ::= (K_ALIAS | K_ALIASES) ShowAliasName? K_FOR (K_DATABASE | K_DATABASES)
+private ShowAliasName ::= !(K_FOR) SymbolicAliasName
+
+//-- Phase K: server management commands
+ShowServers ::= K_SERVERS | K_SERVER
+EnableServerCommand ::= K_ENABLE K_SERVER StringOrParameter Options? {pin=1}
+AlterServer ::= K_ALTER K_SERVER StringOrParameter K_SET Options {pin=2}
+DropServer ::= K_DROP K_SERVER StringOrParameter {pin=2}
+
+AllocationCommand ::= K_DRYRUN? (DeallocateDatabaseFromServers | ReallocateDatabases)
+DeallocateDatabaseFromServers ::= K_DEALLOCATE (K_DATABASE | K_DATABASES) K_FROM (K_SERVER | K_SERVERS) StringOrParameter ("," StringOrParameter)* {pin=1}
+ReallocateDatabases ::= K_REALLOCATE (K_DATABASE | K_DATABASES) {pin=1}
+
+TerminateCommand ::= K_TERMINATE K_TRANSACTIONS (StringOrParameter ("," StringOrParameter)*)? ShowTail? {pin=1}
+
+RenameCommand ::= K_RENAME (RenameRole | RenameUser | RenameServer) {pin=1}
+RenameRole ::= K_ROLE SymbolicNameOrStringParameter IfExists? K_TO SymbolicNameOrStringParameter
+RenameUser ::= K_USER SymbolicNameOrStringParameter IfExists? K_TO SymbolicNameOrStringParameter
+RenameServer ::= K_SERVER StringOrParameter K_TO StringOrParameter
+
+//-- YIELD clause (SHOW commands, Neo4j 4.4+)
+YieldClause ::= K_YIELD ("*" | YieldItem ("," YieldItem)*) Order? Skip? Limit? Where?
+YieldItem ::= Variable (K_AS Variable)?
+
+//-- GRANT / DENY / REVOKE commands (Phase H — full GPM privilege model)
+GrantCommand ::= K_GRANT (K_IMMUTABLE? GrantPrivilege | K_ROLE (GrantRoleManagement | GrantRole) | K_ROLES GrantRole | K_IMMUTABLE K_ROLE GrantRoleManagement) {pin=1}
+DenyCommand ::= K_DENY K_IMMUTABLE? (DenyPrivilege | K_ROLE RoleManagementPrivilege K_TO SymbolicNameOrStringParameterList) {pin=1}
+RevokeCommand ::= K_REVOKE (K_DENY K_IMMUTABLE? | K_GRANT K_IMMUTABLE? | K_IMMUTABLE)? (RevokePrivilege | K_ROLE (RevokeRoleManagement | RevokeRole) | K_ROLES RevokeRole) {pin=1}
+
+GrantPrivilege ::= Privilege K_TO SymbolicNameOrStringParameterList
+DenyPrivilege ::= Privilege K_TO SymbolicNameOrStringParameterList
+RevokePrivilege ::= Privilege K_FROM SymbolicNameOrStringParameterList
+
+GrantRole ::= SymbolicNameOrStringParameterList K_TO SymbolicNameOrStringParameterList
+RevokeRole ::= SymbolicNameOrStringParameterList K_FROM SymbolicNameOrStringParameterList
+GrantRoleManagement ::= RoleManagementPrivilege K_TO SymbolicNameOrStringParameterList
+RevokeRoleManagement ::= RoleManagementPrivilege K_FROM SymbolicNameOrStringParameterList
+RoleManagementPrivilege ::= K_MANAGEMENT K_ON K_DBMS
+
+// Kept for backward compatibility (PSI stability)
+Roles ::= SymbolicNameString ("," SymbolicNameString)*
+
+Privilege ::= AllPrivilege
+            | CreatePrivilege
+            | DropPrivilege
+            | ShowPrivilege
+            | SetPrivilege
+            | RemovePrivilege
+            | DatabasePrivilege
+            | DbmsPrivilege
+            | WritePrivilege
+            | QualifiedGraphPrivilegesWithProperty
+            | QualifiedGraphPrivileges
+
+AllPrivilege ::= K_ALL AllPrivilegeType? K_ON AllPrivilegeTarget
+AllPrivilegeType ::= (K_DBMS | K_GRAPH | K_DATABASE)? K_PRIVILEGES
+AllPrivilegeTarget ::= K_DEFAULT (K_GRAPH | K_DATABASE)
+                     | K_HOME (K_GRAPH | K_DATABASE)
+                     | K_DBMS
+                     | GraphScopeList
+                     | DatabaseScopeList
+
+// Note: "CREATE INDEX" is lexed as compound token K_CREATE_INDEX; "CREATE INDEXES" uses K_CREATE + K_INDEXES
+CreatePrivilege ::= K_CREATE_INDEX K_ON DatabaseScopeList
+                  | K_CREATE ((K_INDEXES | K_CONSTRAINT | K_CONSTRAINTS
+                               | K_NEW (K_NODE? (K_LABEL | K_LABELS) | K_RELATIONSHIP? (K_TYPE | K_TYPES) | K_PROPERTY? (K_NAME | K_NAMES))
+                               ) K_ON DatabaseScopeList
+                             | (K_DATABASE | K_ALIAS | K_ROLE | K_USER | K_COMPOSITE K_DATABASE) K_ON K_DBMS
+                             | K_ON GraphScopeList GraphQualifier?)
+
+DropPrivilege ::= K_DROP (((K_INDEX | K_INDEXES) | (K_CONSTRAINT | K_CONSTRAINTS)) K_ON DatabaseScopeList
+                         | (K_DATABASE | K_ALIAS | K_ROLE | K_USER | K_COMPOSITE K_DATABASE) K_ON K_DBMS)
+
+ShowPrivilege ::= K_SHOW (((K_INDEX | K_INDEXES) | (K_CONSTRAINT | K_CONSTRAINTS)
+                           | (K_TRANSACTION | K_TRANSACTIONS) ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                           ) K_ON DatabaseScopeList
+                          | (K_ALIAS | K_PRIVILEGE | K_ROLE | K_USER | (K_SERVER | K_SERVERS) | (K_SETTING | K_SETTINGS) SettingQualifier?) K_ON K_DBMS)
+
+SetPrivilege ::= K_SET (((K_PASSWORD | K_PASSWORDS) | K_USER (K_STATUS | K_HOME K_DATABASE) | K_DATABASE K_ACCESS) K_ON K_DBMS
+                       | K_LABEL LabelResource K_ON GraphScopeList
+                       | K_PROPERTY PropertyResource K_ON GraphScopeList GraphQualifier?)
+
+RemovePrivilege ::= K_REMOVE ((K_PRIVILEGE | K_ROLE) K_ON K_DBMS | K_LABEL LabelResource K_ON GraphScopeList)
+
+WritePrivilege ::= K_WRITE K_ON GraphScopeList
+
+DatabasePrivilege ::= (K_ACCESS | K_START | K_STOP
+                       | (K_INDEX | K_INDEXES) K_MANAGEMENT?
+                       | (K_CONSTRAINT | K_CONSTRAINTS) K_MANAGEMENT?
+                       | K_TRANSACTION K_MANAGEMENT? ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                       | K_TERMINATE (K_TRANSACTION | K_TRANSACTIONS) ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                       | K_NAME K_MANAGEMENT?) K_ON DatabaseScopeList
+
+DbmsPrivilege ::= (K_ALTER (K_USER | K_DATABASE | K_ALIAS)
+                  | K_ASSIGN (K_PRIVILEGE | K_ROLE)
+                  | K_COMPOSITE K_DATABASE K_MANAGEMENT
+                  | K_DATABASE K_MANAGEMENT
+                  | K_ALIAS K_MANAGEMENT
+                  | K_EXECUTE ExecuteQualifier
+                  | K_PRIVILEGE K_MANAGEMENT
+                  | K_RENAME (K_ROLE | K_USER)
+                  | K_SERVER K_MANAGEMENT
+                  | K_USER K_MANAGEMENT
+                  | K_IMPERSONATE ("(" ("*" | SymbolicNameOrStringParameterList) ")")?
+                  ) K_ON K_DBMS
+
+// PEG order: PROCEDURE/PROCEDURES before FUNCTION/FUNCTIONS to disambiguate BOOSTED
+ExecuteQualifier ::= (K_ADMIN | K_ADMINISTRATOR)? K_BOOSTED? (K_PROCEDURE | K_PROCEDURES) Globs?
+                   | (K_ADMIN | K_ADMINISTRATOR)? K_BOOSTED? K_USER? K_DEFINED? (K_FUNCTION | K_FUNCTIONS) Globs?
+
+QualifiedGraphPrivilegesWithProperty ::= (K_TRAVERSE | K_READ PropertyResource | K_MATCH PropertyResource) K_ON GraphScopeList GraphQualifier?
+QualifiedGraphPrivileges ::= (K_DELETE | K_MERGE PropertyResource) K_ON GraphScopeList GraphQualifier?
+
+DatabaseScopeList ::= (K_DATABASE | K_DATABASES) ("*" | SymbolicAliasNameList)
+                    | K_DEFAULT K_DATABASE
+                    | K_HOME K_DATABASE
+GraphScopeList ::= (K_GRAPH | K_GRAPHS) ("*" | SymbolicAliasNameList)
+                 | K_DEFAULT K_GRAPH
+                 | K_HOME K_GRAPH
+
+// Optional: present only when RELATIONSHIP/NODE/ELEMENT qualifier follows
+GraphQualifier ::= (K_RELATIONSHIP | K_RELATIONSHIPS) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+                 | (K_NODE | K_NODES) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+                 | (K_ELEMENT | K_ELEMENTS) ("*" | SymbolicNameString ("," SymbolicNameString)*)
+
+PropertyResource ::= "{" ("*" | SymbolicNameString ("," SymbolicNameString)*) "}"
+LabelResource ::= "*" | SymbolicNameString ("," SymbolicNameString)*
+SettingQualifier ::= Globs
+Globs ::= Glob ("," Glob)*
+Glob ::= GlobPart ("." GlobPart)*
+GlobPart ::= SymbolicNameString | "*"
+
+SymbolicAliasNameList ::= SymbolicAliasName ("," SymbolicAliasName)*
+SymbolicAliasName ::= SymbolicNameString ("." SymbolicNameString)* | Parameter
+SymbolicNameOrStringParameterList ::= SymbolicNameOrStringParameter ("," SymbolicNameOrStringParameter)*
+SymbolicNameOrStringParameter ::= SymbolicNameString | Parameter
+
+// Kept for backward compatibility (PSI stability)
+PropertiesList ::= "*" | (SymbolicNameString ("," SymbolicNameString)*)
+
+IfExists ::= K_IF_EXISTS
+IfNotExists ::= K_IF_NOT_EXISTS
+OrReplace ::= K_OR K_REPLACE
 
 /*************************
  * Indexes
@@ -173,7 +499,7 @@ CreateLookupIndexForRelationshipPart ::= K_FOR "(" ")" "-" "[" Variable "]" "-" 
 
 CreateIndexOptionsPart ::= K_OPTIONS "{" LiteralEntry? ("," LiteralEntry)* "}"
 
-DropIndex ::= K_DROP K_INDEX IndexName K_IF_EXISTS?
+DropIndex ::= K_DROP K_INDEX IndexName IfExists?
 
 /*************************
  * Query
@@ -198,7 +524,8 @@ UpdatingClause ::= Create
                | SetClause
                | Remove
 
-ReadingClause ::= LoadCSV
+ReadingClause ::= UseClause
+              | LoadCSV
               | Start
               | Match
               | Unwind
@@ -208,6 +535,9 @@ ReadingClause ::= LoadCSV
 /*************************
  * Clauses
  */
+//-- Use clause (Neo4j 4.0+): selects target graph/database
+UseClause ::= K_USE (K_GRAPH Expression | Expression)
+
 //-- Load csv
 LoadCSV ::= K_LOAD K_CSV (K_WITH K_HEADERS)? K_FROM Expression K_AS Variable (K_FIELDTERMINATOR StringLiteral)?
 
@@ -258,7 +588,12 @@ Skip ::= K_SKIP Expression
 Limit ::= K_LIMIT Expression
 
 //-- Call subquery
-CallSubQuery ::= K_CALL "{" Query "}" (K_IN_TRANSACTIONS (K_OF IntegerLiteral K_ROWS)?)? {pin=2}
+CallSubQuery ::= K_CALL "{" Query "}" SubqueryInTransactionsParameters? {pin=2}
+
+SubqueryInTransactionsParameters ::= K_IN_TRANSACTIONS (SubqueryInTransactionsBatchParameters | SubqueryInTransactionsErrorParameters | SubqueryInTransactionsReportParameters)*
+SubqueryInTransactionsBatchParameters ::= K_OF Expression (K_ROW | K_ROWS)
+SubqueryInTransactionsErrorParameters ::= K_ON K_ERROR (K_CONTINUE | K_BREAK | K_FAIL)
+SubqueryInTransactionsReportParameters ::= K_REPORT K_STATUS K_AS Variable
 
 //-- Call procedure
 Call ::= K_CALL ProcedureInvocation ProcedureResults?
@@ -289,7 +624,7 @@ Where ::= K_WHERE Expression
  * Patterns
  */
 Pattern ::= PatternPart ("," PatternPart)*
-PatternPart ::= (Variable "=")? AnonymousPatternPart
+PatternPart ::= (Variable "=")? Selector? AnonymousPatternPart
 AnonymousPatternPart ::= ShortestPathPattern | PatternElement
 ShortestPathPattern ::= ShortestPathFunctionInvocation | AllShortestPathsFunctionInvocation {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherTypePropagator"
@@ -300,21 +635,75 @@ ShortestPathFunctionInvocation ::= (K_SHORTESTPATH "(" PatternElement ")") {
 AllShortestPathsFunctionInvocation ::= (K_ALLSHORTESTPATHS "(" PatternElement ")") {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherListYielding"
 }
-PatternElement ::= ("(" PatternElement ")") | (NodePattern PatternElementChain*)
-PatternElementChain ::= RelationshipPattern NodePattern {pin=1}
+PatternElement ::= ParenthesizedPath | (NodePattern PatternElementChain*)
+PatternElementChain ::= RelationshipPattern Quantifier? NodePattern {pin=1}
 
 RelationshipPattern ::= LeftArrowHead? Dash RelationshipDetail? Dash RightArrowHead? {pin=2}
 
-RelationshipDetail ::= "[" Variable? "?"? RelationshipTypes? MaybeVariableLength? Properties? Where? "]" {pin=1}
+RelationshipDetail ::= "[" Variable? "?"? LabelExpression? MaybeVariableLength? Properties? Where? "]" {pin=1}
 RelationshipTypes ::= ":" RelTypeName ("|" ":"? RelTypeName)* {pin=1}
 MaybeVariableLength ::= ("*" RangeLiteral?)
 
-NodePattern ::= "(" Variable? NodeLabels? Properties? Where? ")" {pin=1}
+// Quantifier: fixed {n}, range {m,n}/{m,}/{,n}, or symbolic + and * (Neo4j 5+ GPM)
+Quantifier ::= ("{" UnsignedInteger "}")
+             | ("{" UnsignedInteger? "," UnsignedInteger? "}")
+             | "+"
+             | "*"
+
+// ParenthesizedPath: ( Pattern WHERE? ) Quantifier?   (Neo4j 5+ GPM)
+// No pin — must backtrack when inner Pattern fails (e.g. plain NodePattern)
+ParenthesizedPath ::= "(" Pattern Where? ")" Quantifier?
+
+// Selector: path selector for MATCH (ANY SHORTEST, ALL, SHORTEST n, etc.)
+// PEG ordering: longer/more specific alternatives first to avoid premature match.
+// ANY SHORTEST and ALL SHORTEST before ANY/ALL alone.
+// SHORTEST+GROUP before SHORTEST+n (GROUP variant has optional integer).
+Selector ::= (K_ANY K_SHORTEST (K_PATH | K_PATHS)?)
+           | (K_ALL K_SHORTEST (K_PATH | K_PATHS)?)
+           | (K_SHORTEST UnsignedInteger? (K_PATH | K_PATHS)? (K_GROUP | K_GROUPS))
+           | (K_SHORTEST UnsignedInteger (K_PATH | K_PATHS)?)
+           | (K_ANY UnsignedInteger? (K_PATH | K_PATHS)?)
+           | (K_ALL (K_PATH | K_PATHS)?)
+
+NodePattern ::= "(" Variable? LabelExpression? Properties? Where? ")" {pin=1}
 
 RelationshipsPattern ::= NodePattern PatternElementChain+ {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherPathYielding"
 }
 Properties ::= MapLiteral | Parameter
+
+/*************************
+ * Label Expressions (Neo4j 5+)
+ *
+ * Two entry forms:
+ *   Colon form:  :Person&Employee|Animal
+ *   IS form:     IS Person&Employee|Animal
+ *
+ * Precedence (low → high): OR (|), AND (& or :), NOT (!), atoms
+ *
+ * The IS variants use SymbolicLabelNameString which excludes K_NOT and K_NULL
+ * to prevent conflicts with IS NOT NULL / IS NULL in Expression3.
+ * All inner rules are private (no pin) to allow PEG backtracking.
+ */
+LabelExpression ::= (":" LabelExpression4) | (K_IS LabelExpression4Is)
+
+// Level 4: OR — lowest precedence
+private LabelExpression4   ::= LabelExpression3   ("|" ":"? LabelExpression3)*
+private LabelExpression4Is ::= LabelExpression3Is ("|" ":"? LabelExpression3Is)*
+
+// Level 3: AND — & or : (legacy colon-conjunction)
+private LabelExpression3   ::= LabelExpression2   ("&" LabelExpression2   | ":" LabelExpression2)*
+private LabelExpression3Is ::= LabelExpression2Is ("&" LabelExpression2Is | ":" LabelExpression2Is)*
+
+// Level 2: NOT — prefix
+private LabelExpression2   ::= ("!" LabelExpression2)   | LabelExpression1
+private LabelExpression2Is ::= ("!" LabelExpression2Is) | LabelExpression1Is
+
+// Level 1: atoms — name, wildcard (%), parenthesized
+// Colon form uses LabelName (→ SymbolicNameString) for PSI mixin compatibility
+// IS form uses SymbolicLabelNameString (excludes K_NOT, K_NULL)
+private LabelExpression1   ::= ("(" LabelExpression4   ")") | "%" | LabelName
+private LabelExpression1Is ::= ("(" LabelExpression4Is ")") | "%" | SymbolicLabelNameString
 
 /*************************
  * Expression
@@ -348,8 +737,13 @@ private Expression3 ::= Expression2 (
   | (K_CONTAINS  Expression2)
   | (K_IS K_NULL)
   | (K_IS K_NOT K_NULL)
+  | (K_IS K_NOT "::" CypherTypeName)
+  | (K_IS K_NOT K_TYPED CypherTypeName)
+  | (K_IS "::" CypherTypeName)
+  | (K_IS K_TYPED CypherTypeName)
+  | ("::" CypherTypeName)
 )*
-private Expression2 ::= Expression1 (PropertyLookup | NodeLabels)*
+private Expression2 ::= Expression1 (PropertyLookup | LabelExpression)*
 private Expression1 ::= UnaryOperator
               | NumberLiteral
               | StringLiteral
@@ -379,6 +773,7 @@ private Expression1 ::= UnaryOperator
               | FunctionInvocation
               | ExistentialSubQuery
               | CountSubQuery
+              | CollectExpression
               | Variable
 
 
@@ -408,15 +803,26 @@ FunctionArguments ::= "(" K_DISTINCT? Expression? ("," Expression)* ")" {
 }
 FunctionInvocationBody ::= Namespace FunctionName
 
-// Note: this deviates from the grammar defined at https://github.com/opencypher/openCypher
-// However, this conforms to the description of existential subqueries in the Neo4j docs:
-// https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#existential-subqueries
-ExistentialSubQuery ::= K_EXISTS "{" K_MATCH? PatternWithWhereClause "}"
+// Existential subquery: supports both full query form and pattern form (Neo4j 5+)
+//
+// Two valid forms inside {}:
+//   Pattern form:   MATCH? Pattern WHERE?   (no RETURN — e.g. EXISTS { (n)-[:K]->() })
+//   Full query form: RegularQuery            (with RETURN — e.g. EXISTS { MATCH (n) RETURN n })
+//
+// Problem with plain ordering: ReadingWithReturn has pin=1 on ReadingClause* (always matches),
+// so RegularQuery commits even on bare patterns and creates PsiError nodes when no RETURN follows.
+//
+// Fix: pattern form is tried first, but only accepted when NOT followed by K_RETURN.
+// The !K_RETURN negative lookahead ensures we fall through to RegularQuery whenever
+// a full query (with RETURN) is inside the braces.
+ExistentialSubQuery ::= K_EXISTS "{" ((K_MATCH? PatternWithWhereClause !K_RETURN) | RegularQuery) "}"
 
-// Note: this deviates from the grammar defined at https://github.com/opencypher/openCypher
-// However, this conforms to the description of count subqueries in the Neo4j docs:
-// https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#count-subqueries
-CountSubQuery ::= K_COUNT "{" K_MATCH? PatternWithWhereClause "}"
+// Count subquery: supports both full query form and pattern form (Neo4j 5+)
+// Same approach as ExistentialSubQuery.
+CountSubQuery ::= K_COUNT "{" ((K_MATCH? PatternWithWhereClause !K_RETURN) | RegularQuery) "}"
+
+// Collect subquery: COLLECT { query } → list (Neo4j 5+)
+CollectExpression ::= K_COLLECT "{" RegularQuery "}"
 
 CaseExpression ::= K_CASE ((CaseAlternatives+) | (Expression CaseAlternatives+))
                    (K_ELSE Expression)?
@@ -482,7 +888,7 @@ Variable ::= SymbolicNameString {
     mixin="com.github.mdelambilly.graphdbplugin.language.cypher.psi.impl.CypherVariableElementImplMixin"
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherVariableElement"
 }
-FunctionName ::= UnescapedSymbolicNameString | EscapedSymbolicNameString | K_COUNT
+FunctionName ::= SymbolicNameString
 ProcedureName ::= SymbolicNameString
 CountStar ::= (K_COUNT "(" "*" ")") {
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.types.CypherIntegerYielding"
@@ -516,7 +922,6 @@ PropertyKeyName ::= SymbolicNameString {
     mixin="com.github.mdelambilly.graphdbplugin.language.cypher.psi.impl.CypherPropertyKeyNameImplMixin"
     implements="com.github.mdelambilly.graphdbplugin.language.cypher.references.CypherNamedElement"
 }
-PropertyKeyNames ::= PropertyKeyName ("," PropertyKeyName)*
 
 RangeLiteral ::= (IntegerLiteral? ".." IntegerLiteral?) | (IntegerLiteral)
 MapLiteral ::= "{" (PropertyKeyName ":" Expression)? ("," PropertyKeyName ":" Expression)* "}" {
@@ -628,6 +1033,348 @@ ReservedWord ::= K_MATCH
                 | K_ALLSHORTESTPATHS
                 | K_ALL
                 | K_ADD
+                // Phase 1: new keywords for admin commands
+                | K_ACCESS
+                | K_ACTIVE
+                | K_ADMIN
+                | K_ADMINISTRATOR
+                | K_ALTER
+                | K_ASSIGN
+                | K_BOOSTED
+                | K_BRIEF
+                | K_BTREE
+                | K_CATALOG
+                | K_CHANGE
+                | K_COLLECT
+                | K_CONSTRAINTS
+                | K_COPY
+                | K_CURRENT
+                | K_DATABASE
+                | K_DATABASES
+                | K_DBMS
+                | K_DEFAULT
+                | K_DEFINED
+                | K_DENY
+                | K_ELEMENT
+                | K_ELEMENTS
+                | K_EXECUTE
+                | K_EXIST
+                | K_FUNCTION
+                | K_FUNCTIONS
+                | K_GRANT
+                | K_GRAPH
+                | K_GRAPHS
+                | K_IF
+                | K_INDEXES
+                | K_KEY
+                | K_LABEL
+                | K_LABELS
+                | K_MANAGEMENT
+                | K_NAME
+                | K_NAMES
+                | K_NEW
+                | K_NODES
+                | K_OUTPUT
+                | K_PASSWORD
+                | K_POPULATED
+                | K_PRIVILEGE
+                | K_PRIVILEGES
+                | K_PROCEDURE
+                | K_PROCEDURES
+                | K_PROPERTY
+                | K_READ
+                | K_RELATIONSHIPS
+                | K_REPLACE
+                | K_REQUIRED
+                | K_REVOKE
+                | K_ROLE
+                | K_ROLES
+                | K_SHOW
+                | K_STATUS
+                | K_STOP
+                | K_SUSPENDED
+                | K_TO
+                | K_TRANSACTION
+                | K_TRANSACTIONS
+                | K_TRAVERSE
+                | K_TYPE
+                | K_TYPED
+                | K_TYPES
+                | K_USE
+                | K_USER
+                | K_USERS
+                | K_VERBOSE
+                | K_WRITE
+                // Phase G2: GPM path selectors
+                | K_SHORTEST
+                | K_PATHS
+                | K_PATH
+                | K_GROUPS
+                | K_GROUP
+                // Phase H: full privilege model
+                | K_ALIAS
+                | K_COMPOSITE
+                | K_HOME
+                | K_IMMUTABLE
+                | K_IMPERSONATE
+                | K_PASSWORDS
+                | K_RENAME
+                | K_SERVERS
+                | K_SERVER
+                | K_SETTINGS
+                | K_SETTING
+                | K_TERMINATE
+                // Phase I: extended database admin commands
+                | K_TOPOLOGY
+                | K_PRIMARIES
+                | K_PRIMARY
+                | K_SECONDARIES
+                | K_SECONDARY
+                | K_WAIT
+                | K_NOWAIT
+                | K_SECONDS
+                | K_SECOND
+                | K_SEC
+                | K_DUMP
+                | K_DESTROY
+                | K_DATA
+                | K_TARGET
+                | K_DRIVER
+                | K_PROPERTIES
+                | K_ONLY
+                | K_OPTION
+                | K_AT
+                | K_ALIASES
+                // Phase J: extended subquery IN TRANSACTIONS
+                | K_CONTINUE
+                | K_BREAK
+                | K_FAIL
+                | K_REPORT
+                | K_ROW
+                | K_ROWS
+                | K_ERROR
+                // Phase K: server management and rename/terminate commands
+                | K_ENABLE
+                | K_DRYRUN
+                | K_DEALLOCATE
+                | K_REALLOCATE
+
+// Used in IS label expressions — excludes K_NOT and K_NULL to avoid
+// ambiguity with IS NOT NULL / IS NULL in Expression3.
+// Excludes K_NOT_NULL compound token (not in this grammar) but safe to list.
+SymbolicLabelNameString ::= UnescapedSymbolicNameString
+    | EscapedSymbolicNameString
+    | LabelReservedWord
+
+LabelReservedWord ::= K_MATCH
+                | K_YIELD
+                | K_XOR
+                | K_WITH
+                | K_WHERE
+                | K_WHEN
+                | K_USING
+                | K_UNWIND
+                | K_UNIQUE
+                | K_UNION
+                | K_TRUE
+                | K_THEN
+                | K_STARTS
+                | K_START
+                | K_SKIP
+                | K_SINGLE
+                | K_SHORTESTPATH
+                | K_SET
+                | K_SCAN
+                | K_SCALAR
+                | K_RETURN
+                | K_REQUIRE
+                | K_REMOVE
+                | K_RELATIONSHIP
+                | K_REL
+                | K_REDUCE
+                | K_PROFILE
+                | K_ORDER
+                | K_OR
+                | K_OPTIONAL
+                | K_ON
+                | K_OF
+                // K_NULL intentionally excluded
+                // K_NOT intentionally excluded
+                | K_NONE
+                | K_NODE
+                | K_MERGE
+                | K_MANDATORY
+                | K_LOAD
+                | K_LIMIT
+                | K_JOIN
+                | K_IS
+                | K_INDEX
+                | K_IN
+                | K_HEADERS
+                | K_FROM
+                | K_FOREACH
+                | K_FOR
+                | K_FILTER
+                | K_FIELDTERMINATOR
+                | K_FALSE
+                | K_EXTRACT
+                | K_EXPLAIN
+                | K_EXISTS
+                | K_ENDS
+                | K_END
+                | K_ELSE
+                | K_DROP
+                | K_DO
+                | K_DISTINCT
+                | K_DETACH
+                | K_DESCENDING
+                | K_DESC
+                | K_DELETE
+                | K_CYPHER
+                | K_CSV
+                | K_CREATE
+                | K_COUNT
+                | K_CONTAINS
+                | K_CONSTRAINT
+                | K_COMMIT
+                | K_CASE
+                | K_CALL
+                | K_BY
+                | K_BEGIN
+                | K_ASSERT
+                | K_ASCENDING
+                | K_ASC
+                | K_AS
+                | K_ANY
+                | K_AND
+                | K_ALLSHORTESTPATHS
+                | K_ALL
+                | K_ADD
+                // Phase 1 keywords (same exclusions apply)
+                | K_ACCESS
+                | K_ACTIVE
+                | K_ADMIN
+                | K_ADMINISTRATOR
+                | K_ALTER
+                | K_ASSIGN
+                | K_BOOSTED
+                | K_BRIEF
+                | K_BTREE
+                | K_CATALOG
+                | K_CHANGE
+                | K_COLLECT
+                | K_CONSTRAINTS
+                | K_COPY
+                | K_CURRENT
+                | K_DATABASE
+                | K_DATABASES
+                | K_DBMS
+                | K_DEFAULT
+                | K_DEFINED
+                | K_DENY
+                | K_ELEMENT
+                | K_ELEMENTS
+                | K_EXECUTE
+                | K_EXIST
+                | K_FUNCTION
+                | K_FUNCTIONS
+                | K_GRANT
+                | K_GRAPH
+                | K_GRAPHS
+                | K_IF
+                | K_INDEXES
+                | K_KEY
+                | K_LABEL
+                | K_LABELS
+                | K_MANAGEMENT
+                | K_NAME
+                | K_NAMES
+                | K_NEW
+                | K_NODES
+                | K_OUTPUT
+                | K_PASSWORD
+                | K_POPULATED
+                | K_PRIVILEGE
+                | K_PRIVILEGES
+                | K_PROCEDURE
+                | K_PROCEDURES
+                | K_PROPERTY
+                | K_READ
+                | K_RELATIONSHIPS
+                | K_REPLACE
+                | K_REQUIRED
+                | K_REVOKE
+                | K_ROLE
+                | K_ROLES
+                | K_SHOW
+                | K_STATUS
+                | K_STOP
+                | K_SUSPENDED
+                | K_TO
+                | K_TRANSACTION
+                | K_TRANSACTIONS
+                | K_TRAVERSE
+                | K_TYPE
+                | K_TYPED
+                | K_TYPES
+                | K_USE
+                | K_USER
+                | K_USERS
+                | K_VERBOSE
+                | K_WRITE
+                // Phase G2: GPM path selectors
+                | K_SHORTEST
+                | K_PATHS
+                | K_PATH
+                | K_GROUPS
+                | K_GROUP
+                // Phase H: full privilege model
+                | K_ALIAS
+                | K_COMPOSITE
+                | K_HOME
+                | K_IMMUTABLE
+                | K_IMPERSONATE
+                | K_PASSWORDS
+                | K_RENAME
+                | K_SERVERS
+                | K_SERVER
+                | K_SETTINGS
+                | K_SETTING
+                | K_TERMINATE
+                // Phase I: extended database admin commands
+                | K_TOPOLOGY
+                | K_PRIMARIES
+                | K_PRIMARY
+                | K_SECONDARIES
+                | K_SECONDARY
+                | K_WAIT
+                | K_NOWAIT
+                | K_SECONDS
+                | K_SECOND
+                | K_SEC
+                | K_DUMP
+                | K_DESTROY
+                | K_DATA
+                | K_TARGET
+                | K_DRIVER
+                | K_PROPERTIES
+                | K_ONLY
+                | K_OPTION
+                | K_AT
+                | K_ALIASES
+                // Phase J: extended subquery IN TRANSACTIONS
+                | K_CONTINUE
+                | K_BREAK
+                | K_FAIL
+                | K_REPORT
+                | K_ROW
+                | K_ROWS
+                | K_ERROR
+                // Phase K: server management and rename/terminate commands
+                | K_ENABLE
+                | K_DRYRUN
+                | K_DEALLOCATE
+                | K_REALLOCATE
 
 EscapedSymbolicNameString ::= l_identifier_text
 UnescapedSymbolicNameString ::= l_identifier
