@@ -28,15 +28,15 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.JBTabsPaneImpl;
 import com.intellij.ui.border.CustomLineBorder;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.ui.tabs.JBTabs;
+import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -64,8 +64,7 @@ public class GraphConsoleView implements Disposable {
 
     private ExecutionStatusBarWidget executionStatusBarWidget;
     private JPanel consoleToolWindowContent;
-    private JBTabsPaneImpl consoleTabsPane;
-    private JBTabsImpl consoleTabs;
+    private JBTabs consoleTabs;
 
     // Graph
     private JPanel consoleToolbarPanel;
@@ -164,9 +163,8 @@ public class GraphConsoleView implements Disposable {
         defaultTabContainer.add(Tabs.PARAMETERS, parametersTab);
         defaultTabContainer.add(Tabs.RAW, rawTab);
 
-        // --- consoleTabs (JBTabsImpl) via JBTabsPaneImpl ---
-        consoleTabsPane = new JBTabsPaneImpl(null, SwingConstants.TOP, this);
-        consoleTabs = (JBTabsImpl) consoleTabsPane.getTabs();
+        // --- consoleTabs via public JBTabsFactory ---
+        consoleTabs = JBTabsFactory.createTabs(null, this);
 
         consoleTabs.addTabMouseListener(new MouseAdapter() {
             @Override
@@ -190,7 +188,7 @@ public class GraphConsoleView implements Disposable {
         // --- Root panel ---
         consoleToolWindowContent = new JPanel(new BorderLayout());
         consoleToolWindowContent.add(consoleToolbarPanel, BorderLayout.WEST);
-        consoleToolWindowContent.add(consoleTabs, BorderLayout.CENTER);
+        consoleToolWindowContent.add(consoleTabs.getComponent(), BorderLayout.CENTER);
     }
 
     public void initToolWindow(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
@@ -207,7 +205,6 @@ public class GraphConsoleView implements Disposable {
             defaultTabContainer.setVisible(false);
 
             // Tabs
-            consoleTabs.setFirstTabOffset(0);
             consoleTabs.addTab(new TabInfo(logTab)
                 .setText(Tabs.LOG));
             consoleTabs.addTab(new TabInfo(graphTab)
