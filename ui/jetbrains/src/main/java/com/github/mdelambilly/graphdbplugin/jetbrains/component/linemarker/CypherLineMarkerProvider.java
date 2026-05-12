@@ -11,10 +11,8 @@ import com.github.mdelambilly.graphdbplugin.jetbrains.actions.execute.ExecuteQue
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.psi.PsiElement;
 import com.github.mdelambilly.graphdbplugin.language.cypher.util.PsiTraversalUtilities;
@@ -22,10 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static java.util.Objects.*;
 
@@ -53,11 +47,8 @@ public class CypherLineMarkerProvider implements LineMarkerProvider {
                     AllIcons.Actions.Execute,
                     element1 -> "Execute Query",
                     (mouseEvent, psiElement) ->
-                            getDataContext().ifPresent(c -> {
-                                ExecuteQueryAction action = new ExecuteQueryAction(queryElement);
-                                AnActionEvent event = AnActionEvent.createFromAnAction(action, mouseEvent, "", c);
-                                action.actionPerformed(event);
-                            }),
+                            ActionManager.getInstance().tryToExecute(
+                                    new ExecuteQueryAction(queryElement), mouseEvent, null, "", true),
                     GutterIconRenderer.Alignment.CENTER,
                     () -> "Execute Query") {
                 @Override
@@ -77,18 +68,6 @@ public class CypherLineMarkerProvider implements LineMarkerProvider {
             };
         }
         return null;
-    }
-
-    private Optional<DataContext> getDataContext() {
-        try {
-            return Optional.ofNullable(
-                    DataManager.getInstance()
-                            .getDataContextFromFocusAsync()
-                            .blockingGet(100, TimeUnit.MILLISECONDS));
-        } catch (TimeoutException | ExecutionException e) {
-            return Optional.empty();
-        }
-
     }
 
     @Override
